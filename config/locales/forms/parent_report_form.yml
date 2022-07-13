@@ -1,0 +1,28 @@
+pt-BR:
+  parent_report:
+    form:
+      select_all: "Selecionar todos"
+      deselect_all: "Remover todos"
+  activemodel:
+    attributes:
+      parent_report_form:
+        unity_id: "Escola"
+        classroom_id: "Turma"
+        student_id: "Aluno"
+        discipline_id: "Disciplina"
+        class_numbers: "Aulas"
+        start_at: "Data inicial"
+        end_at: "Data final"
+        period: "Período"
+
+    errors:
+      models:
+        parent_report_form:
+          attributes:
+            start_at:
+              must_be_a_valid_date: "deve ser uma data válida"
+              start_at_must_be_less_than_or_equal_to_end_at: "não pode ser maior que a data final"
+            end_at:
+              must_be_a_valid_date: "deve ser uma data válida"
+            individual_frequencies:
+              must_have_individual_frequencies: "Nenhum resultado foi encontrado para os dados informados"

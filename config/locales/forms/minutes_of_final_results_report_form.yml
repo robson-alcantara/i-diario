@@ -1,0 +1,16 @@
+pt-BR:
+  minutes_of_final_results_report:
+    form:
+      select_all: "Selecionar todos"
+      deselect_all: "Remover todos"
+  activemodel:
+    attributes:
+      minutes_of_final_results_report_form:
+        unity_id: "Escola"
+        course: "Modalidade"
+        school_calendar_step_id: "Etapa"
+
+    errors:
+      models:
+        minutes_of_final_results_report_form:
+          attributes:

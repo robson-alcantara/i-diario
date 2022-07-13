@@ -19,6 +19,7 @@ class Student < ActiveRecord::Base
   has_many :observation_diary_record_note_students
   has_many :recovery_diary_record_students
   has_many :transfer_notes
+  has_many :opn_tb_exams
 
   attr_accessor :exempted_from_discipline
 

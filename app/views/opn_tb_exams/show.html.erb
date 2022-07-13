@@ -1,0 +1,41 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Turma:</strong>
+  <%= @opn_tb_exam.classroom %>
+</p>
+
+<p>
+  <strong>Aluno:</strong>
+  <%= @opn_tb_exam.student %>
+</p>
+
+<p>
+  <strong>Tabela de pareceres:</strong>
+  <%= @opn_tb_exam.opn_tb.description %>
+</p>
+
+<p>
+  <strong>Data:</strong>
+  <%= @opn_tb_exam.recorded_at %>
+</p>
+
+<p>
+  <strong>Bimestre:</strong>
+  <%= @opn_tb_exam.step_number %>
+</p>
+
+<% @opn_tb_exam.opn_tb_exam_values.reverse_each do |x|  %>	
+  <p>
+    <strong>Pergunta:</strong>
+    <%= OpnTbQuestion.find_by( id: OpnTbItem.find_by( id: x.opn_tb_item_id ).opn_tb_question_id ).description%>
+  </p>  
+
+  <p>
+    <strong>Resposta:</strong>
+    <%= OpnTbAnswer.find_by( id: x.opn_tb_answer_id ).description %>
+  </p>  
+<% end  %>  
+
+<%= link_to 'Editar', edit_opn_tb_exam_path(@opn_tb_exam) %> |
+<%= link_to 'Voltar', opn_tb_exams_path %>

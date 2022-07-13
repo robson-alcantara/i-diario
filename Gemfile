@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '2.2.6'
+ruby '2.3.1'
 
 gem 'active_model_serializers', '0.9.3'
 gem 'activerecord-connections', git: 'https://github.com/ricardohsd/activerecord-connections.git'
@@ -23,6 +23,8 @@ gem 'devise', '3.5.1'
 gem 'ejs', '1.1.1'
 gem 'enumerate_it', '1.3.1'
 gem 'fog', '1.36.0'
+gem 'fog-brightbox', '0.16.1'
+gem 'dry-inflector', '0.1.2'
 gem 'fog-xenserver', '0.3.0'
 gem 'foreigner', '1.6.1'
 gem 'google_drive', '2.1.12', require: false
@@ -65,6 +67,7 @@ gem 'twitter-bootstrap-rails', '3.2.0'
 gem 'uglifier', '4.1.20'
 gem 'uri_validator', '0.2.0'
 gem 'validates_timeliness', '3.0.14'
+gem 'thrift', '0.9.3'
 
 # Adiciona gem de dependencia para fixar a versão com suporte ao ruby 2.2.6
 gem 'public_suffix', '3.0.3'
@@ -103,6 +106,7 @@ group :test do
   gem 'turnip', '1.3.1'
   gem 'vcr', '3.0.0'
   gem 'webmock', '1.24.6'
+  gem 'signet', '0.10.0'
 end
 
 group :test, :development do

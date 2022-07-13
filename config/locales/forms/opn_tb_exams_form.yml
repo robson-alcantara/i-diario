@@ -1,0 +1,5 @@
+pt-BR:
+  activemodel:
+    attributes:
+      opt_tb_exams_form:    
+        step_number: 'Bimestre'

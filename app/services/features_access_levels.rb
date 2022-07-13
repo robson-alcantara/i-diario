@@ -35,6 +35,9 @@ class FeaturesAccessLevels
       :knowledge_area_teaching_plans,
       :observation_diary_records,
       :observation_record_report,
+      :daily_record_report,
+      :individual_record_report,
+      :opn_tb_exams,
       :school_calendar_events,
       :school_calendars,
       :school_term_recovery_diary_records,
@@ -43,7 +46,12 @@ class FeaturesAccessLevels
       :teacher_report_cards,
       :complementary_exams,
       :ieducar_api_exam_posting_without_restrictions,
-      :change_school_year
+      :change_school_year,
+      :progress_report,
+      :parent_report,
+      :consolidated_progress_report,
+      :monthly_frequencies_report,
+      :minutes_of_final_results_report
     ]
   end
 

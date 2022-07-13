@@ -1,6 +1,17 @@
 require 'sidekiq/web'
 
 Rails.application.routes.draw do
+  resources :opn_tb_grades
+  resources :opn_tb_exam_values  
+  resources :opn_tb_questions
+  resources :opn_tbs
+  resources :opn_tb_items
+  resources :opn_tb_field_experiences
+  resources :opn_tb_gradation_levels
+  resources :opn_tb_answers_groups_answers
+  resources :opn_tb_answers_groups
+  resources :opn_tb_answers  
+
   mount Sidekiq::Web => '/sidekiq'
 
   get 'worker-processses-status', to: 'sidekiq_monitor#processes_status'
@@ -247,6 +258,10 @@ Rails.application.routes.draw do
     end
     resources :final_recovery_diary_records, concerns: :history
     resources :avaliation_recovery_diary_records, concerns: :history
+    resources :opn_tb_exams do
+      get 'new_asp', to: 'opn_tb_exams#new_asp', on: :collection
+      get 'new_final', to: 'opn_tb_exams#new_final', on: :collection
+    end
     resources :conceptual_exams, concerns: :history do
       collection do
         get :exempted_disciplines
@@ -293,6 +308,27 @@ Rails.application.routes.draw do
 
     get '/reports/attendance_record', to: 'attendance_record_report#form', as: 'attendance_record_report'
     post '/reports/attendance_record', to: 'attendance_record_report#report', as: 'attendance_record_report'
+
+    get '/reports/daily_record', to: 'daily_record_report#form', as: 'daily_record_report'
+    post '/reports/daily_record', to: 'daily_record_report#report', as: 'daily_record_report'        
+
+    get '/reports/individual_records', to: 'individual_record_report#form', as: 'individual_record_report'
+    post '/reports/individual_records', to: 'individual_record_report#report', as: 'individual_record_report'    
+
+    get '/reports/progress', to: 'progress_report#form', as: 'progress_report'
+    post '/reports/progress', to: 'progress_report#report', as: 'progress_report'
+
+    get '/reports/consolidated_progress', to: 'consolidated_progress_report#form', as: 'consolidated_progress_report'
+    post '/reports/consolidated_progress', to: 'consolidated_progress_report#report', as: 'consolidated_progress_report'
+
+    get '/reports/monthly_frequencies', to: 'monthly_frequencies_report#form', as: 'monthly_frequencies_report'
+    post '/reports/monthly_frequencies', to: 'monthly_frequencies_report#report', as: 'monthly_frequencies_report'
+
+    get '/reports/minutes_of_final_results', to: 'minutes_of_final_results_report#form', as: 'minutes_of_final_results_report'
+    post '/reports/minutes_of_final_results', to: 'minutes_of_final_results_report#report', as: 'minutes_of_final_results_report'                
+
+    get '/reports/parents', to: 'parent_report#form', as: 'parent_report'
+    post '/reports/parents', to: 'parent_report#report', as: 'parent_report'
 
     get '/reports/absence_justification', to: 'absence_justification_report#form', as: 'absence_justification_report'
     post '/reports/absence_justification', to: 'absence_justification_report#report', as: 'absence_justification_report'

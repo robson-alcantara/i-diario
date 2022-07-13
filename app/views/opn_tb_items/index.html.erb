@@ -1,0 +1,33 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Opn Tb Items</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Opn tb</th>
+      <th>Opn tb question</th>
+      <th>Opn tb gradation level</th>
+      <th>Order</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @opn_tb_items.each do |opn_tb_item| %>
+      <tr>
+        <td><%= opn_tb_item.opn_tb %></td>
+        <td><%= opn_tb_item.opn_tb_question %></td>
+        <td><%= opn_tb_item.opn_tb_gradation_level %></td>
+        <td><%= opn_tb_item.order %></td>
+        <td><%= link_to 'Show', opn_tb_item %></td>
+        <td><%= link_to 'Edit', edit_opn_tb_item_path(opn_tb_item) %></td>
+        <td><%= link_to 'Destroy', opn_tb_item, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Opn tb item', new_opn_tb_item_path %>

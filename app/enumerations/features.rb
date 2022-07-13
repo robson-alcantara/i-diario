@@ -32,6 +32,9 @@ class Features < EnumerateIt::Base
                    :observation_diary_records,
                    :observation_record_report,
                    :partial_score_record_report,
+                   :daily_record_report,
+                   :individual_record_report,
+                   :opn_tb_exams,
                    :roles,
                    :school_calendar_events,
                    :school_calendars,
@@ -41,7 +44,13 @@ class Features < EnumerateIt::Base
                    :test_settings,
                    :transfer_notes,
                    :unities,
-                   :users
+                   :users,
+                   :progress_report,
+                   :parent_report,
+                   :consolidated_progress_report,
+                   :monthly_frequencies_report,
+                   :minutes_of_final_results_report
+
 
 
   sort_by :translation

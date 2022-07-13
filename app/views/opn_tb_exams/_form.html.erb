@@ -1,0 +1,92 @@
+<%# <div class="widget-body no-padding"> %>
+  <%= simple_form_for(@opn_tb_exam) do |f| %>
+    <%= f.error_notification %>
+
+    <%= f.input :opn_tb_id, as: :hidden, input_html: { value: @opn_tb.id } %>
+
+    <%# <div class="form-inputs"> %>
+    <fieldset>
+      <div class="row">
+        <div class="col col-sm-4">
+          <%= f.association :classroom, as: :select2_classroom, user: current_user, label: "Turma" %>
+        </div>
+      <%#<%= f.label :student_id, label: "Aluno" %>
+ 
+        <div class="col col-sm-4"> 
+          <%= f.association :student, as: :select2, elements: @students,  
+            readonly: @opn_tb_exam.persisted?, label: "Aluno" %>   
+        </div>            
+      <%#<%= f.collection_select(:student_id, @students,:id,:name, prompt: "Escolha o aluno") %>
+
+        <div class="col col-sm-4"> 
+          <%# <%= f.association :opn_tb, :label_method => :description, :value_method => :id, label: "Tabela de pareceres", selected: { value: @opn_tb.id }, readonly: true, disabled: true %> 
+          <%#= f.input :opn_tb, as: :select2, elements: opn_tbs_list, input_html: { value: @opn_tb.id }, required: true %>
+          <%= f.input :recorded_at, label: "Data" %>
+        </div>  
+      </div>   
+    </fieldset>                               
+
+    <fieldset>
+      <div class="row">
+        <div class="col col-sm-4">
+          <br>
+          <%= f.label :step_number, label: "Bimestre"        %>
+          <br>
+          <%= f.select( :step_number, options_for_select([["1º Bimestre","1"],["2º Bimestre","2"],["3º Bimestre","3"],["4º Bimestre","4"]], @opn_tb_exam.step_number),{include_blank:true} ) %>
+          <%#= f.input :step_number, as: :select2_step, elements: school_calendar_steps_ordered, input_html: { value: @opn_tb_exam.step_number }, required: true %>
+          <%#= f.input :step_number, as: :select2_step, classroom: current_user_classroom,
+          readonly: @opn_tb_exam.persisted?, required: true %>          
+        </div>
+      </div>   
+    </fieldset> 
+
+    <br><br> 
+
+    <fieldset>
+      <div class="row">
+        <div class="col col-md-9">                    
+          <td>Perguntas</td>
+        </div>          
+
+        <div class="col col-sm-2">          
+          <td>Respostas</td> 
+        </div>
+      </div>   
+    </fieldset>               
+
+    <div class="form-inputs">      
+
+      <% i = 0 %>      
+      <%# <%= f.fields_for :opn_tb_exam_values, [OpnTbExamValue.new]*@opn_tb_items.length do |opn_tb_exam_value| %>             
+      <% @reversedValue = @opn_tb_exam.opn_tb_exam_values.reverse %>
+      <%= f.fields_for :opn_tb_exam_values, @reversedValue do |opn_tb_exam_value| %>
+
+      <fieldset>
+        <div class="row">
+        <br>
+          <div class="col col-md-9">                    
+            <%= @opn_tb_items_hash.to_a[i].first %>        
+            <%#= opn_tb_exam_value.hidden_field :opn_tb_item_id, as: :hidden, :collection => @opn_tb_items_hash.to_a , :selected => @opn_tb_items_hash.to_a[i], :readonly => true, label: false %>            
+            <%= opn_tb_exam_value.hidden_field :opn_tb_item_id, value: @opn_tb_items_hash.to_a[i].second %>            
+          </div>          
+
+          <div class="col col-sm-2">          
+            <%# <%= opn_tb_exam_value.association :opn_tb_answer, :label_method => :description, :value_method => :id, label: false %>
+            <%= opn_tb_exam_value.association :opn_tb_answer, :collection => @opn_tb_aswers, :label_method => :description, :value_method => :id, label: false %>
+            <% i = i + 1 %>   
+          </div>
+        </div>   
+      </fieldset>            
+      <% end %>      
+
+    </div>
+
+    <div class="form-actions">
+      <%= link_to(t('views.form.back'), opn_tb_exams_path, class: 'btn btn-default') %>
+      <%= f.submit(t('views.form.save'), class: 'btn btn-primary') %>
+      <%#<%= f.button 'Salvar', class: 'btn btn-primary' %>
+    </div>
+  <% end %>
+<%# </div> %>
+
+
