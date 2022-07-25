@@ -311,9 +311,13 @@ Rails.application.routes.draw do
 
     get '/reports/daily_record', to: 'daily_record_report#form', as: 'daily_record_report'
     post '/reports/daily_record', to: 'daily_record_report#report', as: 'daily_record_report'        
+    post '/reports/daily_record_editable', to: 'daily_record_report#editable_report', as: 'daily_record_report_editable_report'
+    post '/reports/daily_record_readonly', to: 'daily_record_report#readonly_report', as: 'daily_record_report_readonly_report'
 
-    get '/reports/individual_records', to: 'individual_record_report#form', as: 'individual_record_report'
-    post '/reports/individual_records', to: 'individual_record_report#report', as: 'individual_record_report'    
+    get '/reports/individual_record', to: 'individual_record_report#form', as: 'individual_record_report'
+    post '/reports/individual_record', to: 'individual_record_report#report', as: 'individual_record_report'
+    post '/reports/individual_record_editable', to: 'individual_record_report#editable_report', as: 'individual_record_report_editable_report'
+    post '/reports/individual_record_readonly', to: 'individual_record_report#readonly_report', as: 'individual_record_report_readonly_report'    
 
     get '/reports/progress', to: 'progress_report#form', as: 'progress_report'
     post '/reports/progress', to: 'progress_report#report', as: 'progress_report'
