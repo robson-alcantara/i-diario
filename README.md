@@ -165,4 +165,8 @@ $ bin/rspec spec
 
 ### Atualizar assets
 
-```bundle exec rake assets:clean```
+no arquivo ```/config/enviroments/development``` mudar a linha ```config.assets.debug``` para ```true``
+
+```bash
+$ bundle exec rake assets:clean
+```
