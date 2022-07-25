@@ -170,5 +170,11 @@ No arquivo ```/config/enviroments/development``` mudar a linha ```config.assets.
 Executar o seguinte comando para limpar o cache
 
 ```bash
-$ bundle exec rake assets:clean
+$ bundle exec rails console
+```
+
+No console, executar o comando:
+
+```ruby
+Rails.cache.clear
 ```
