@@ -10,6 +10,20 @@ class IndividualRecordReportController < ApplicationController
     fetch_collections
   end
 
+  def editable_report
+    @report_type = "INDIVIDUAL_RECORDS_EDITABLE"
+    @extension = ".doc"
+
+    report
+  end
+
+  def readonly_report
+    @report_type = "INDIVIDUAL_RECORDS_READONLY"    
+    @extension = ".pdf"
+
+    report    
+  end  
+
   def report    
     @individual_record_report_form = IndividualRecordReportForm.new(resource_params)
     @individual_record_report_form.school_calendar = SchoolCalendar.find_by(unity: current_user_unity, year: current_user_school_year)
@@ -27,17 +41,16 @@ class IndividualRecordReportController < ApplicationController
 
       grade_api_code = Grade.find( Classroom.find( current_user_classroom ).grade_id ).api_code
         
-      if ( ( grade_api_code.to_i === 38 ) ||
-        ( grade_api_code.to_i === 39 ) ||
-        ( grade_api_code.to_i === 40 ) ||
-        ( grade_api_code.to_i === 41 ) ||
-        ( grade_api_code.to_i === 42 ) )
-        extension = ".pdf"
-      else
-        extension = ".xls"        
+      if ( ( grade_api_code.to_i != 38 ) &&
+        ( grade_api_code.to_i != 39 ) &&
+        ( grade_api_code.to_i != 40 ) &&
+        ( grade_api_code.to_i != 41 ) &&
+        ( grade_api_code.to_i != 42 ) )
+        @extension = ".xls"
+        @report_type = "INDIVIDUAL_RECORDS_EDITABLE"
       end
 
-      filename = "#{Dir.pwd}/public/relatorios/report#{Time.now.strftime("_%m_%d_%Y_%H-%M-%S")}#{extension}"            
+      filename = "#{Dir.pwd}/public/relatorios/report#{Time.now.strftime("_%m_%d_%Y_%H-%M-%S")}#{@extension}"            
       
       begin
         port = ARGV[0] || 9090
@@ -53,12 +66,12 @@ class IndividualRecordReportController < ApplicationController
           ( grade_api_code.to_i === 42 ) )
           transport.open()
       
-          client.run_ieducar_monitor_daily_with_dates( "INDIVIDUAL_RECORDS", current_user_unity.id, @individual_record_report_form.classroom_id.to_i, @individual_record_report_form.student_id.to_i, @individual_record_report_form.start_at, @individual_record_report_form.end_at, current_user_school_year, filename )              
+          client.run_ieducar_monitor_daily_with_dates( @report_type, current_user_unity.id, @individual_record_report_form.classroom_id.to_i, @individual_record_report_form.student_id.to_i, @individual_record_report_form.start_at, @individual_record_report_form.end_at, current_user_school_year, filename )              
           transport.close()
         else
           transport.open()
       
-          client.run_ieducar_monitor_daily( "INDIVIDUAL_RECORDS", current_user_unity.id, @individual_record_report_form.classroom_id.to_i, @individual_record_report_form.student_id.to_i, current_user_school_year, filename )              
+          client.run_ieducar_monitor_daily( @report_type, current_user_unity.id, @individual_record_report_form.classroom_id.to_i, @individual_record_report_form.student_id.to_i, current_user_school_year, filename )              
           transport.close()
         end      
       rescue Thrift::Exception => tx

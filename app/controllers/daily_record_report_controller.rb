@@ -10,6 +10,20 @@ class DailyRecordReportController < ApplicationController
     fetch_collections
   end
 
+  def editable_report
+    @report_type = "DAILY_EDITABLE"
+    @extension = ".doc"
+
+    report
+  end
+
+  def readonly_report
+    @report_type = "DAILY_READONLY"    
+    @extension = ".pdf"
+
+    report    
+  end
+
   def report    
     @daily_record_report_form = DailyRecordReportForm.new(resource_params)
     @daily_record_report_form.school_calendar = SchoolCalendar.find_by(unity: current_user_unity, year: current_user_school_year)
@@ -31,19 +45,14 @@ class DailyRecordReportController < ApplicationController
       
       require 'thrift'
       
-      require 'calculator'
-      
-
-      extension = ""
+      require 'calculator'      
         
       if ( current_user_school_year == 2019 )
-        extension = ".xls"
-      else
-        extension = ".pdf"        
+        @report_type = "DAILY_EDITABLE"
+        @extension = ".xls"        
       end
 
-
-      filename = "#{Dir.pwd}/public/relatorios/report#{Time.now.strftime("_%m_%d_%Y_%H-%M-%S")}#{extension}"            
+      filename = "#{Dir.pwd}/public/relatorios/report#{Time.now.strftime("_%m_%d_%Y_%H-%M-%S")}#{@extension}"            
       
       begin
         port = ARGV[0] || 9090
@@ -54,20 +63,12 @@ class DailyRecordReportController < ApplicationController
       
         transport.open()      
 
-        client.run_ieducar_monitor_daily( "DAILY", current_user_unity.id, @daily_record_report_form.classroom_id.to_i, @daily_record_report_form.student_id.to_i, current_user_school_year, filename )              
+        client.run_ieducar_monitor_daily( @report_type, current_user_unity.id, @daily_record_report_form.classroom_id.to_i, @daily_record_report_form.student_id.to_i, current_user_school_year, filename )              
         transport.close()
       
       rescue Thrift::Exception => tx
         print 'Thrift::Exception: ', tx.message, "\n"
-      end
-
-
-
-      
-      #puts  "java -jar \"./vendor/ieducarmonitor/IEducarMonitor.jar\" -run DAILY_CHILD_EDUCATION #{current_user_unity.id} #{@daily_record_report_form.classroom_id} #{@daily_record_report_form.student_id} #{current_user_school_year} #{filename}"      
-      #system "java -jar \"./vendor/ieducarmonitor/IEducarMonitor.jar\" -run DAILY_CHILD_EDUCATION #{current_user_unity.id} #{@daily_record_report_form.classroom_id} #{@daily_record_report_form.student_id} #{current_user_school_year} #{filename}"      
-
-      
+      end      
       
       send_file filename      
     else
