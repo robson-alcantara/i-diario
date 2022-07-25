@@ -160,3 +160,9 @@ $ RAILS_ENV=test bundle exec rake db:migrate
 ```bash
 $ bin/rspec spec
 ```
+
+## Desenvolvimento
+
+### Atualizar assets
+
+```bundle exec rake assets:clean```
