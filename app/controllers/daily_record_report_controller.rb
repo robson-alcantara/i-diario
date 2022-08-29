@@ -12,7 +12,7 @@ class DailyRecordReportController < ApplicationController
 
   def editable_report
     @report_type = "DAILY_EDITABLE"
-    @extension = ".doc"
+    @extension = ".docx"
 
     report
   end

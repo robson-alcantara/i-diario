@@ -12,7 +12,7 @@ class IndividualRecordReportController < ApplicationController
 
   def editable_report
     @report_type = "INDIVIDUAL_RECORDS_EDITABLE"
-    @extension = ".doc"
+    @extension = ".docx"
 
     report
   end
