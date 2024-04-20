@@ -45,7 +45,12 @@ class IndividualRecordReportController < ApplicationController
         ( grade_api_code.to_i != 39 ) &&
         ( grade_api_code.to_i != 40 ) &&
         ( grade_api_code.to_i != 41 ) &&
-        ( grade_api_code.to_i != 42 ) )
+        ( grade_api_code.to_i != 42 ) &&
+        ( grade_api_code.to_i != 5 ) &&
+        ( grade_api_code.to_i != 7 ) &&
+        ( grade_api_code.to_i != 11 ) &&
+        ( grade_api_code.to_i != 17 ) &&
+        ( grade_api_code.to_i != 4 ) )
         @extension = ".xls"
         @report_type = "INDIVIDUAL_RECORDS_EDITABLE"
       end
@@ -63,7 +68,12 @@ class IndividualRecordReportController < ApplicationController
           ( grade_api_code.to_i === 39 ) ||
           ( grade_api_code.to_i === 40 ) ||
           ( grade_api_code.to_i === 41 ) ||
-          ( grade_api_code.to_i === 42 ) )
+          ( grade_api_code.to_i === 42 ) ||
+          ( grade_api_code.to_i === 5 ) ||
+          ( grade_api_code.to_i === 7 ) ||
+          ( grade_api_code.to_i === 11 ) ||
+          ( grade_api_code.to_i === 17 ) ||
+          ( grade_api_code.to_i === 4 ))
           transport.open()
       
           client.run_ieducar_monitor_daily_with_dates( @report_type, current_user_unity.id, @individual_record_report_form.classroom_id.to_i, @individual_record_report_form.student_id.to_i, @individual_record_report_form.start_at, @individual_record_report_form.end_at, current_user_school_year, filename )              
