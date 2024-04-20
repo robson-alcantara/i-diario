@@ -17,10 +17,22 @@ class StepsFetcher
     school_calendar_steps.started_after_and_before(date).first
   end
 
+  def steps_by_date_range(start_date, end_date)
+    return if school_calendar.blank?
+
+    school_calendar_steps.by_date_range(start_date, end_date)
+  end
+
   def step_by_id(step_id)
     return if school_calendar.blank?
 
     school_calendar_steps.find_by(id: step_id)
+  end
+
+  def last_step_by_year
+    return if school_calendar.blank?
+
+    school_calendar_steps.last
   end
 
   def current_step
@@ -44,7 +56,10 @@ class StepsFetcher
   end
 
   def school_calendar
-    @school_calendar ||= SchoolCalendar.find_by(unity_id: @classroom.unity_id, year: @classroom.year)
+    unity_id = @classroom.is_a?(Classroom) ? @classroom.unity_id : @classroom&.map(&:unity_id)&.first
+    year = @classroom.is_a?(Classroom) ? @classroom.year : @classroom&.map(&:year)&.first
+
+    @school_calendar ||= SchoolCalendar.find_by(unity_id: unity_id, year: year)
   end
 
   private
@@ -52,11 +67,12 @@ class StepsFetcher
   def school_calendar_classroom
     return if school_calendar.blank?
 
-    @school_calendar_classroom ||= school_calendar.classrooms.find_by(classroom_id: @classroom.id)
+    classroom_id = @classroom.is_a?(Classroom) ? @classroom.id : @classroom&.map(&:id)
+    @school_calendar_classroom ||= school_calendar.classrooms.find_by(classroom_id: classroom_id)
   end
 
   def school_calendar_steps
-    return if school_calendar.blank?
+    return SchoolCalendarStep.none if school_calendar.blank?
 
     @school_calendar_steps ||= begin
       school_calendar_classroom.present? ? school_calendar_classroom.classroom_steps : school_calendar.steps
@@ -67,7 +83,7 @@ class StepsFetcher
     return if school_calendar.blank?
 
     school_calendar_steps.each do |step|
-      return step if step.step_number == step_number
+      return step if step.step_number == step_number.to_i
     end
 
     nil

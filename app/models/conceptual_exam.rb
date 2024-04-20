@@ -1,8 +1,11 @@
 class ConceptualExam < ActiveRecord::Base
   include Audit
   include Stepable
+  include Discardable
+  include ColumnsLockable
   include TeacherRelationable
 
+  not_updatable only: :classroom_id
   teacher_relation_columns only: :classroom
 
   acts_as_copy_target
@@ -24,9 +27,13 @@ class ConceptualExam < ActiveRecord::Base
 
   has_enumeration_for :status, with: ConceptualExamStatus, create_helpers: true
 
+  default_scope -> { kept }
+
   scope :by_unity, ->(unity) { joins(:classroom).where(classrooms: { unity_id: unity }) }
   scope :by_classroom, ->(classroom) { where(classroom: classroom) }
+  scope :by_classroom_id, ->(classroom_id) { where(classroom_id: classroom_id) }
   scope :by_student_id, ->(student_id) { where(student_id: student_id) }
+  scope :by_step_number, ->(step_number) { where(step_number: step_number) }
   scope :by_discipline, lambda { |discipline|
     join_conceptual_exam_values.where(conceptual_exam_values: { discipline: discipline })
   }
@@ -36,8 +43,9 @@ class ConceptualExam < ActiveRecord::Base
         Student.arel_table[:id].eq(ConceptualExam.arel_table[:student_id])
       ).join_sources
     ).where(
-      "(unaccent(students.name) ILIKE unaccent('%#{student_name}%') or
-        unaccent(students.social_name) ILIKE unaccent('%#{student_name}%'))"
+      "(unaccent(students.name) ILIKE unaccent(:student_name) or
+        unaccent(students.social_name) ILIKE unaccent(:student_name))",
+      student_name: "%#{student_name}%"
     )
   }
   scope :ordered, -> { order(recorded_at: :desc) }
@@ -64,14 +72,21 @@ class ConceptualExam < ActiveRecord::Base
   def self.by_teacher(teacher_id)
     active.where(
       TeacherDisciplineClassroom.arel_table[:teacher_id].eq(teacher_id)
-    ).uniq
+    ).distinct
   end
 
   def self.by_status(classroom_id, teacher_id, status)
     discipline_ids = TeacherDisciplineClassroom.by_classroom(classroom_id)
                                                .by_teacher_id(teacher_id)
                                                .pluck(:discipline_id)
-    incomplete_conceptual_exams_ids = ConceptualExamValue.active.where(value: nil)
+
+    exempted_discipline_ids = SpecificStep.where(classroom_id: classroom_id)
+                                          .where.not(used_steps: '')
+                                          .pluck(:discipline_id)
+
+    incomplete_conceptual_exams_ids = ConceptualExamValue.joins(:conceptual_exam).active.where(value: nil)
+                                                         .where(conceptual_exams: { classroom_id: classroom_id })
+                                                         .where.not(discipline_id: exempted_discipline_ids)
                                                          .by_discipline_id(discipline_ids)
                                                          .group(:conceptual_exam_id)
                                                          .pluck(:conceptual_exam_id)
@@ -84,14 +99,23 @@ class ConceptualExam < ActiveRecord::Base
     end
   end
 
+
   def status
     discipline_ids = TeacherDisciplineClassroom.where(classroom_id: classroom_id, teacher_id: teacher_id)
                                                .pluck(:discipline_id)
+
+    exempted_discipline_ids = ExemptedDisciplinesInStep.discipline_ids(
+      classroom.id,
+      step_number
+    )
+
     values = ConceptualExamValue.where(
       conceptual_exam_id: id,
       exempted_discipline: false,
       discipline_id: discipline_ids
-    )
+    ).where.not(discipline_id: exempted_discipline_ids)
+
+    return ConceptualExamStatus::INCOMPLETE if values.blank?
 
     return ConceptualExamStatus::INCOMPLETE if values.any? { |conceptual_exam_value|
       conceptual_exam_value.value.blank?
@@ -126,14 +150,26 @@ class ConceptualExam < ActiveRecord::Base
     end
   end
 
+  def ignore_date_validates
+    !(new_record? || recorded_at != recorded_at_was)
+  end
+
   private
 
   def student_must_have_conceptual_exam_score_type
-    return if student.blank? || classroom.blank?
+    return if student.blank? || classroom.blank? || validation_type.eql?(:destroy)
 
     permited_score_types = [ScoreTypes::CONCEPT, ScoreTypes::NUMERIC_AND_CONCEPT]
-    exam_rule = classroom.exam_rule
+    classroom_grade = ClassroomsGrade.by_student_id(student.id).by_classroom_id(classroom.id)&.first
+
+    return if classroom_grade.blank?
+
+    exam_rule = classroom_grade&.exam_rule
     exam_rule = (exam_rule.differentiated_exam_rule || exam_rule) if student.uses_differentiated_exam_rule
+
+    if student.uses_differentiated_exam_rule
+      exam_rule = exam_rule.differentiated_exam_rule || exam_rule
+    end
 
     return if exam_rule.blank? || permited_score_types.include?(exam_rule.score_type)
 
@@ -162,7 +198,7 @@ class ConceptualExam < ActiveRecord::Base
 
     discipline_ids = conceptual_exam_values.collect(&:discipline_id)
     conceptual_exam = ConceptualExam.joins(:conceptual_exam_values)
-                                    .by_recorded_at_between(step.start_at, step.end_at)
+                                    .by_step_number(step.step_number)
                                     .where(
                                       student_id: student_id,
                                       classroom_id: classroom_id,
@@ -175,7 +211,7 @@ class ConceptualExam < ActiveRecord::Base
   end
 
   def ensure_student_is_in_classroom
-    return if recorded_at.blank? || student_id.blank? || classroom_id.blank?
+    return if recorded_at.blank? || student_id.blank? || classroom_id.blank? || validation_type == :destroy
     return if StudentEnrollment.by_student(student_id).by_classroom(classroom_id).by_date(recorded_at).exists?
 
     errors.add(:base, :student_is_not_in_classroom)

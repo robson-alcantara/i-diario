@@ -1,4 +1,4 @@
-class DailyNote < ActiveRecord::Base
+class DailyNote < ApplicationRecord
   include Audit
 
   acts_as_copy_target
@@ -10,11 +10,11 @@ class DailyNote < ActiveRecord::Base
 
   has_one :daily_note_status
   has_many :students, -> {
-    includes(:student).order('students.name')
+    joins(:student).includes(:student).order('students.name')
   }, class_name: 'DailyNoteStudent', dependent: :destroy
 
   accepts_nested_attributes_for :students, allow_destroy: true, reject_if: proc { |attributes|
-    !ActiveRecord::Type::Boolean.new.type_cast_from_user(attributes[:active])
+    !ActiveRecord::Type::Boolean.new.cast(attributes[:active])
   }
 
   has_enumeration_for :status, with: DailyNoteStatuses, create_helpers: true
@@ -29,6 +29,7 @@ class DailyNote < ActiveRecord::Base
 
   before_destroy :ensure_not_has_avaliation_recovery
   before_destroy :avaliation_test_date_must_be_valid_posting_date
+  before_destroy :destroy_daily_note_students
 
   scope :by_teacher_id, lambda { |teacher_id| by_teacher_id_query(teacher_id) }
   scope :by_unity_id, lambda { |unity_id| joins(:avaliation).merge(Avaliation.by_unity_id(unity_id)) }
@@ -64,7 +65,7 @@ class DailyNote < ActiveRecord::Base
     joins(:avaliation).merge(Avaliation.by_step_id(classroom, step_id))
   }
   scope :by_active_student_enrollment_classroom, lambda { |classroom_id|
-    joins(students: [student: :student_enrollments]).merge(
+    joins(students: [student: [student_enrollments: [:student_enrollment_classrooms]]]).merge(
       StudentEnrollment.by_classroom(classroom_id).active
     )
   }
@@ -72,7 +73,14 @@ class DailyNote < ActiveRecord::Base
   scope :order_by_avaliation_test_date, -> { order('avaliations.test_date') }
   scope :order_by_avaliation_test_date_desc, -> { order('avaliations.test_date DESC') }
   scope :order_by_sequence, -> { joins(students: [student: :student_enrollments]).merge(StudentEnrollment.ordered) }
+  scope :order_by_classroom, lambda {
+    joins(avaliation: [teacher_discipline_classrooms: :classroom]).order(Classroom.arel_table[:description].desc)
+  }
   scope :active, -> { joins(:students).merge(DailyNoteStudent.active) }
+  scope :teacher_avaliations, lambda { |teacher_id, classroom_id, discipline_id|
+    includes(avaliation: :teacher_discipline_classrooms).where(teacher_discipline_classrooms:
+      { teacher_id: teacher_id, classroom_id: classroom_id, discipline_id: discipline_id })
+  }
 
   delegate :status, to: :daily_note_status, prefix: false, allow_nil: true
   delegate :classroom, :classroom_id, :discipline, :discipline_id, to: :avaliation, allow_nil: true
@@ -92,20 +100,29 @@ class DailyNote < ActiveRecord::Base
   private
 
   def self.by_teacher_id_query(teacher_id)
+    avaliation = Avaliation.arel_table
+    daily_note = DailyNote.arel_table
+    teacher_discipline_classroom = TeacherDisciplineClassroom.arel_table
+
     joins(
-      arel_table.join(TeacherDisciplineClassroom.arel_table, Arel::Nodes::OuterJoin)
+      arel_table.join(avaliation, Arel::Nodes::InnerJoin)
+        .on(avaliation[:id].eq(daily_note[:avaliation_id]))
+      .join_sources
+    ).joins(
+       arel_table.join(teacher_discipline_classroom, Arel::Nodes::InnerJoin)
         .on(
-          TeacherDisciplineClassroom.arel_table[:classroom_id]
-            .eq(DailyNote.arel_table[:classroom_id])
-            .and(
-              TeacherDisciplineClassroom.arel_table[:discipline_id]
-                .eq(DailyNote.arel_table[:discipline_id])
+          teacher_discipline_classroom[:classroom_id]
+            .eq(avaliation[:classroom_id])
+            .and(teacher_discipline_classroom[:discipline_id]
+              .eq(avaliation[:discipline_id])
             )
         )
-        .join_sources
-      )
-      .where(TeacherDisciplineClassroom.arel_table[:teacher_id].eq(teacher_id)
-      .and(TeacherDisciplineClassroom.arel_table[:active].eq('t')))
+       .join_sources
+    )
+    .where(
+      teacher_discipline_classroom[:teacher_id].eq(teacher_id)
+        .and(teacher_discipline_classroom[:active].eq('t'))
+    )
   end
 
   def ensure_not_has_avaliation_recovery
@@ -128,6 +145,10 @@ class DailyNote < ActiveRecord::Base
     return true if PostingDateChecker.new(classroom, test_date).check
     errors.add(:avaliation, I18n.t('errors.messages.not_allowed_to_post_in_date'))
     false
+  end
+
+  def destroy_daily_note_students
+    students.with_discarded.destroy_all
   end
 
   def self.with_daily_note_students_query(with_daily_notes)

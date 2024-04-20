@@ -34,7 +34,7 @@ module Turnip
     step 'que existe uma unidade cadastrada' do
       click_menu 'Configurações > Unidades'
 
-      within :xpath, '//table/tbody/tr[position()=1]' do
+      within :xpath, '//table/tbody/tr[position()=2]' do
         wait_for(page).to have_content 'Escola A Unidade escolar'
       end
     end
@@ -73,7 +73,7 @@ module Turnip
 
     step "poderei excluir uma unidade" do
       wait_for(page).to have_content 'Escola Z'
-      click_on 'Excluir Escola Z'
+      accept_alert { click_on 'Excluir Escola Z' }
 
       wait_for(page).to have_content "Unidade foi apagada com sucesso"
 

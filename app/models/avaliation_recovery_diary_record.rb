@@ -8,13 +8,15 @@ class AvaliationRecoveryDiaryRecord < ActiveRecord::Base
 
   before_destroy :valid_for_destruction?
 
-  belongs_to :recovery_diary_record, dependent: :destroy
+  belongs_to :recovery_diary_record
   belongs_to :avaliation
   belongs_to :unity
   belongs_to :classroom
   belongs_to :discipline
 
   accepts_nested_attributes_for :recovery_diary_record
+
+  delegate :classroom, :classroom_id, :discipline, :discipline_id, to: :recovery_diary_record
 
   scope :by_unity_id, lambda { |unity_id| joins(:recovery_diary_record).where(recovery_diary_records: { unity_id: unity_id }) }
   scope :by_teacher_id, lambda { |teacher_id| by_teacher_id_query(teacher_id) }
@@ -35,8 +37,6 @@ class AvaliationRecoveryDiaryRecord < ActiveRecord::Base
 
   validate :uniqueness_of_avaliation_recovery_diary_record
   validate :recovery_date_should_be_greater_or_equal_avaliation_date, if: :dates_are_set?
-
-  before_validation :self_assign_to_recovery_diary_record
 
   private
 
@@ -78,13 +78,9 @@ class AvaliationRecoveryDiaryRecord < ActiveRecord::Base
   end
 
   def dates_are_set?
-    recovery_diary_record.recorded_at.present? && avaliation.test_date.present? if recovery_diary_record
-  end
+    return if recovery_diary_record.blank? || avaliation.blank?
 
-  def self_assign_to_recovery_diary_record
-    if recovery_diary_record && !recovery_diary_record.avaliation_recovery_diary_record
-      recovery_diary_record.avaliation_recovery_diary_record = self
-    end
+    recovery_diary_record.recorded_at.present? && avaliation.test_date.present?
   end
 
   def valid_for_destruction?

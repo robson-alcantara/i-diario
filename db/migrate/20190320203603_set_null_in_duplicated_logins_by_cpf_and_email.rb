@@ -1,4 +1,4 @@
-class SetNullInDuplicatedLoginsByCpfAndEmail < ActiveRecord::Migration
+class SetNullInDuplicatedLoginsByCpfAndEmail < ActiveRecord::Migration[4.2]
   def change
     users = User.where("COALESCE(login, '') <> ''").order("status = 'actived'")
 
@@ -7,7 +7,9 @@ class SetNullInDuplicatedLoginsByCpfAndEmail < ActiveRecord::Migration
                   user.login =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i ||
                   exists_login?(user.login, user.id)
 
-      user.update(login: nil)
+      user.without_auditing do
+        user.update(login: nil)
+      end
     end
   end
 

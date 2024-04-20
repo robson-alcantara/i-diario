@@ -28,7 +28,7 @@ class DisciplineLessonPlanPdf < BaseReport
 
   def header
     header_cell = make_cell(
-      content: 'Planos de aula por disciplina',
+      content: Translator.t('navigation.discipline_lesson_plans'),
       size: 12,
       font_style: :bold,
       background_color: 'DEDEDE',
@@ -96,7 +96,7 @@ class DisciplineLessonPlanPdf < BaseReport
     )
 
     @class_plan_header_cell = make_cell(
-      content: 'Plano de aula',
+      content: Translator.t('navigation.lesson_plans_menu'),
       size: 12,
       font_style: :bold,
       background_color: 'DEDEDE',
@@ -135,10 +135,48 @@ class DisciplineLessonPlanPdf < BaseReport
     @classroom_cell = make_cell(content: lesson_plan.classroom.description, size: 10, borders: [:bottom, :left, :right], padding: [0, 2, 4, 4], colspan: 2)
 
     @discipline_header = make_cell(content: 'Disciplina', size: 8, font_style: :bold, borders: [:left, :right, :top], padding: [2, 2, 4, 4], colspan: 4)
-    @discipline_cell = make_cell(content: @discipline_lesson_plan.discipline.description, size: 10, borders: [:bottom, :left, :right], padding: [0, 2, 4, 4], colspan: 4)
+    @discipline_cell = make_cell(content: @discipline_lesson_plan.discipline.to_s, size: 10, borders: [:bottom, :left, :right], padding: [0, 2, 4, 4], colspan: 4)
 
-    conteudo_cell_content = inline_formated_cell_header('Conteúdos') + (lesson_plan.contents.present? ? lesson_plan.contents_ordered.map(&:to_s).join(", ") : '-')
+    if @discipline_lesson_plan.thematic_unit.present?
+      thematic_unit_cell_content = inline_formated_cell_header(
+        Translator.t('activerecord.attributes.discipline_lesson_plan.thematic_unit')
+      ) + @discipline_lesson_plan.thematic_unit
+
+      @thematic_unit_cell = make_cell(
+        content: thematic_unit_cell_content,
+        size: 10,
+        borders: [:bottom, :left, :right, :top],
+        padding: [0, 2, 4, 4], colspan: 4
+      )
+    end
+
+    conteudo_cell_content = inline_formated_cell_header(
+      Translator.t('activerecord.attributes.discipline_lesson_plan.contents')
+    ) + (
+      lesson_plan.contents.present? ? lesson_plan.contents_ordered.map(&:to_s).join("\n ") : '-'
+    )
     @conteudo_cell = make_cell(content: conteudo_cell_content, size: 10, borders: [:bottom, :left, :right, :top], padding: [0, 2, 4, 4], colspan: 4)
+
+    objectives_cell_content = inline_formated_cell_header(
+      Translator.t('activerecord.attributes.discipline_lesson_plan.objectives')
+    ) + (
+      lesson_plan.objectives.present? ? lesson_plan.objectives_ordered.map(&:to_s).join("\n ") : '-'
+    )
+    @objectives_cell = make_cell(
+      content: objectives_cell_content,
+      size: 10,
+      borders: [:bottom, :left, :right, :top],
+      padding: [0, 2, 4, 4], colspan: 4
+    )
+
+    opinion_cell_content = inline_formated_cell_header('Parecer') + lesson_plan.opinion.to_s
+    @opinion_cell = make_cell(
+      content: opinion_cell_content,
+      size: 10,
+      borders: [:bottom, :left, :right, :top],
+      padding: [0, 2, 4, 4],
+      colspan: 4
+    )
   end
 
   def general_information
@@ -166,8 +204,11 @@ class DisciplineLessonPlanPdf < BaseReport
   def class_plan
     class_plan_table_data = [
       [@class_plan_header_cell],
-      [@conteudo_cell]
+      [@conteudo_cell],
+      [@objectives_cell]
     ]
+
+    class_plan_table_data.insert(1, [@thematic_unit_cell]) if @discipline_lesson_plan.thematic_unit.present?
 
     table(class_plan_table_data, width: bounds.width, cell_style: { inline_format: true }) do
       cells.border_width = 0.25
@@ -177,11 +218,22 @@ class DisciplineLessonPlanPdf < BaseReport
       column(-1).border_right_width = 0.25
     end
 
-    text_box_truncate('Atividades/metodologia', (lesson_plan.activities || '-'))
-    text_box_truncate('Objetivos', (lesson_plan.objectives || '-'))
-    text_box_truncate('Recursos', (lesson_plan.resources || '-'))
-    text_box_truncate('Avaliação', (lesson_plan.evaluation || '-'))
-    text_box_truncate('Referências', (lesson_plan.bibliography || '-'))
+    actives_methodology_translation = Translation.find_by(key: 'navigation.actives_methodology_by_discipline', group: 'lesson_plans').translation
+    actives_methodology_label = actives_methodology_translation.present? ? actives_methodology_translation : 'Atividades/metodologia'
+
+    resources_translation = Translation.find_by(key: 'navigation.resources_by_discipline', group: 'lesson_plans').translation
+    resources_label = resources_translation.present? ? resources_translation : 'Recursos'
+
+    evaluation_translation = Translation.find_by(key: 'navigation.avaliation_by_discipline', group: 'lesson_plans').translation
+    evaluation_label = evaluation_translation.present? ? evaluation_translation : 'Avaliação'
+
+    references_translation = Translation.find_by(key: 'navigation.references_by_discipline', group: 'lesson_plans').translation
+    references_label = references_translation.present? ? references_translation : 'Referências'
+
+    text_box_truncate(actives_methodology_label, (lesson_plan.activities || '-'))
+    text_box_truncate(resources_label, (lesson_plan.resources || '-'))
+    text_box_truncate(evaluation_label, (lesson_plan.evaluation || '-'))
+    text_box_truncate(references_label, (lesson_plan.bibliography || '-'))
   end
 
   def additional_information

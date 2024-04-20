@@ -11,9 +11,9 @@
     <%= f.input :school_calendar_id, as: :hidden %>
 
     <fieldset>
-        <div class="row hidden">
+        <div class="row">
           <div class="col col-sm-4">
-            <%= f.input :test_setting_id, as: :select2, elements: @test_settings %>
+            <%= f.input :test_setting_id, as: :select2, elements: @test_settings, hide_empty_element: true, input_html: { value: @test_settings.first.id } %>
           </div>
         </div>
 
@@ -21,23 +21,22 @@
         <div class="col col-sm-4">
           <%= f.input :unity_id, as: :select2_unity, user: current_user %>
         </div>
-
         <div class="col col-sm-4">
           <%= f.input :discipline_id, as: :select2, elements: disciplines_for_multiple_classrooms %>
         </div>
         <div class="col col-sm-4">
-          <%= f.input :test_setting_test_id, as: :select2, elements: @avaliation_multiple_creator_form.test_setting.tests, required: true %>
+          <%= f.input :test_setting_test_id, as: :select2, elements: [], required: true %>
+        </div>
+        <div class="col col-sm-4">
+          <%= f.input :description, required: true %>
         </div>
       </div>
 
       <div class="row">
 
-        <div class="col col-sm-4">
-          <%= f.input :description, required: true %>
-        </div>
 
         <div class="col col-sm-4">
-            <%= f.input :weight, required: true, input_html: { data: { inputmask: "'digits': #{@avaliation_multiple_creator_form.test_setting.number_of_decimal_places}" } } %>
+            <%= f.input :weight, required: true, input_html: { data: { inputmask: "'digits': 0" } } %>
         </div>
       </div>
 
@@ -73,8 +72,8 @@
               </div>
             </th>
             <th><%= Avaliation.human_attribute_name(:classroom) %></th>
-            <th width="25%"><%= Avaliation.human_attribute_name(:test_date) %></th>
-            <th width="25%"><%= Avaliation.human_attribute_name(:classes) %></th>
+            <th width="500px"><%= Avaliation.human_attribute_name(:grade) %></th>
+            <th width="500px"><%= Avaliation.human_attribute_name(:test_date) %></th>
           </tr>
         </thead>
 

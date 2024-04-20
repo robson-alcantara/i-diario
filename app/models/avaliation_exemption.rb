@@ -1,4 +1,11 @@
 class AvaliationExemption < ActiveRecord::Base
+  include Discardable
+  include ColumnsLockable
+  include TeacherRelationable
+
+  not_updatable only: [:classroom_id, :discipline_id]
+  teacher_relation_columns only: [:classroom, :discipline]
+
   acts_as_copy_target
 
   belongs_to :avaliation
@@ -24,7 +31,7 @@ class AvaliationExemption < ActiveRecord::Base
 
   validates :student_id,
             presence: true,
-            uniqueness: { scope: [:avaliation_id] }
+            uniqueness: { scope: [:avaliation_id, :discarded_at] }
 
   validate :ensure_no_score_for_avaliation
   validate :avaliation_test_date_must_be_valid_posting_date
@@ -35,8 +42,11 @@ class AvaliationExemption < ActiveRecord::Base
            :classroom, :discipline,
            to: :avaliation, prefix: false, allow_nil: true
   delegate :test_date, to: :avaliation, prefix: true, allow_nil: true
-  delegate :grade_id, :grade, to: :classroom, prefix: false, allow_nil: true
-  delegate :course_id, to: :grade, prefix: false, allow_nil: true
+  delegate :grades, :first_grade, :first_classroom_grade, to: :classroom, prefix: false, allow_nil: true
+  delegate :grade_id, to: :first_classroom_grade, prefix: false, allow_nil: true
+  delegate :course_id, to: :first_grade, prefix: false, allow_nil: true
+
+  default_scope -> { kept }
 
   scope :by_unity, lambda { |unity_id| joins(:avaliation).merge(Avaliation.by_unity_id(unity_id))}
   scope :by_student, lambda { |student_id| where(student_id: student_id) }
@@ -51,8 +61,11 @@ class AvaliationExemption < ActiveRecord::Base
   end)
 
   scope :by_grade_description, lambda { |grade_description|
-    joins(avaliation: [classroom: :grade])
+    joins(avaliation: [{ classroom: { classrooms_grades: :grade } }])
     .where('unaccent(grades.description) ILIKE unaccent(?)', "%#{grade_description}%" )
+  }
+  scope :by_grade_id, lambda { |grade_ids|
+    joins(avaliation: [{ classroom: { classrooms_grades: :grade } }]).where(grades: { id: grade_ids })
   }
 
   scope :by_classroom_description, lambda { |classroom_description|
@@ -62,8 +75,9 @@ class AvaliationExemption < ActiveRecord::Base
 
   scope :by_student_name, lambda { |student_name|
     joins(:student).where(
-      "(unaccent(students.name) ILIKE unaccent('%#{student_name}%') or
-        unaccent(students.social_name) ILIKE unaccent('%#{student_name}%'))"
+      "(unaccent(students.name) ILIKE unaccent(:student_name) or
+        unaccent(students.social_name) ILIKE unaccent(:student_name))",
+      student_name: "%#{student_name}%"
     )
   }
 

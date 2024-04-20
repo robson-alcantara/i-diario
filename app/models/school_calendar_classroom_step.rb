@@ -1,4 +1,4 @@
-class SchoolCalendarClassroomStep < ActiveRecord::Base
+class SchoolCalendarClassroomStep < ApplicationRecord
   include SchoolTermable
 
   audited
@@ -30,29 +30,35 @@ class SchoolCalendarClassroomStep < ActiveRecord::Base
   }
   scope :by_step_number, ->(step_number) { where(step_number: step_number) }
   scope :by_step_year, ->(year) { where('EXTRACT(YEAR FROM start_at) = ?', year) }
+  scope :by_date_range, lambda { |start_date, end_date|
+    where.not(
+      arel_table[:start_at].gt(end_date.to_date).or(
+        arel_table[:end_at].lt(start_date.to_date)
+      )
+    )
+  }
   scope :ordered, -> { order(:start_at) }
 
-  delegate :classroom, :school_calendar_id, to: :school_calendar_classroom
+  delegate :classroom, :classroom_id, :school_calendar_id, to: :school_calendar_classroom
 
   def school_calendar_step_day?(date)
     step_from_date = school_calendar_classroom.classroom_step(date)
 
     return false unless step_from_date.eql?(self)
 
-    school_calendar.school_day?(date, classroom.grade, classroom)
+    school_calendar.school_day?(date, classroom.grade_ids, classroom_id)
   end
 
-  def test_setting
-    school_term = SchoolTermConverter.convert(school_calendar_classroom.classroom_step(start_at))
-    TestSetting.where(
-      TestSetting.arel_table[:year].eq(school_calendar_classroom.school_calendar.year)
-        .and(
-          TestSetting.arel_table[:exam_setting_type].eq(ExamSettingTypes::GENERAL)
-          .or(TestSetting.arel_table[:school_term].eq(school_term))
-        )
-    )
-    .order(school_term: :desc)
-    .first
+  def school_calendar_day_allows_entry?(date)
+    step_from_date = school_calendar_classroom.classroom_step(date)
+
+    return false unless step_from_date.eql?(self)
+
+    school_calendar.day_allows_entry?(date, classroom.grade_ids, classroom_id)
+  end
+
+  def first_school_calendar_date
+    school_calendar.school_day_checker(start_at, classroom.grade_ids, classroom_id).next_school_day
   end
 
   def school_calendar

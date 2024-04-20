@@ -5,7 +5,7 @@ end
 class ValidateSchoolCalendarDayOfMatcher
   def initialize(attribute)
     @attribute = attribute
-    @expected_message = I18n.t('errors.messages.not_school_calendar_day')
+    @expected_message = I18n.t('errors.messages.is_not_between_steps')
   end
 
   def matches?(subject)
@@ -31,12 +31,14 @@ class ValidateSchoolCalendarDayOfMatcher
   private
 
   def allow_day_in_school_calendar
-    classroom = FactoryGirl.create(:classroom, :current)
-    school_calendar = FactoryGirl.create(:school_calendar_with_one_step, :current, unity: classroom.unity)
+    classroom_grades = FactoryGirl.create(:classrooms_grade, :with_classroom_semester_steps)
+    classroom = classroom_grades.classroom
+    school_calendar = classroom.calendar.school_calendar
+    step = classroom.calendar.classroom_steps.first
 
     @subject.school_calendar = school_calendar if @subject.respond_to?(:school_calendar=)
     @subject.classroom = classroom if @subject.respond_to?(:classroom=)
-    @subject.send("#{@attribute}=", school_calendar.steps.first.end_at - 2.days)
+    @subject.send("#{@attribute}=", step.end_at - 2.days)
 
     @subject.valid?
 
@@ -44,12 +46,14 @@ class ValidateSchoolCalendarDayOfMatcher
   end
 
   def disallow_day_not_in_school_calendar
-    classroom = FactoryGirl.create(:classroom, :current)
-    school_calendar = FactoryGirl.create(:school_calendar_with_one_step, :current, unity: classroom.unity)
+    classroom_grades = FactoryGirl.create(:classrooms_grade, :with_classroom_semester_steps)
+    classroom = classroom_grades.classroom
+    school_calendar = classroom.calendar.school_calendar
+    step = classroom.calendar.classroom_steps.first
 
     @subject.school_calendar = school_calendar if @subject.respond_to?(:school_calendar=)
-    @subject.classroom = classroom if @subject.respond_to?(:classroom=)
-    @subject.send("#{@attribute}=", school_calendar.steps.first.end_at + 1.day)
+    @subject.classroom = classroom_grades.classroom if @subject.respond_to?(:classroom=)
+    @subject.send("#{@attribute}=", step.end_at + 1.day)
 
     @subject.valid?
 

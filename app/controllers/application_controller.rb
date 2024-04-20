@@ -2,30 +2,36 @@ require "application_responder"
 
 class ApplicationController < ActionController::Base
   MAX_STEPS_FOR_SCHOOL_CALENDAR = 4
+  rescue_from Exception, :with => :error_generic
 
   self.responder = ApplicationResponder
   respond_to :html
 
   include BootstrapFlashHelper
   include Pundit
-  skip_around_filter :set_locale_from_url
+  skip_around_action :set_locale_from_url
   around_action :handle_customer
   before_action :set_honeybadger_context
-  around_filter :set_user_current
-  around_filter :set_thread_origin_type
+  around_action :set_user_current
+  around_action :set_thread_origin_type
 
   respond_to :html, :json
 
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   #protect_from_forgery with: :exception
-  protect_from_forgery with: :null_session
+  protect_from_forgery with: :null_session, prepend: true
 
   before_action :check_entity_status
-  before_action :authenticate_user!, unless: :disabled_entity_page?
+  before_action :authenticate_user!
   before_action :configure_permitted_parameters, if: :devise_controller?
-  before_action :check_for_notifications
-  before_action :check_for_current_user_role
+  before_action :check_for_notifications, if: :user_signed_in?
+  before_action :check_for_current_user_role, if: :user_signed_in?
+  before_action :set_current_unity_id, if: :user_signed_in?
+  before_action :set_current_user_role_id, if: :user_signed_in?
+  before_action :check_user_has_name, if: :user_signed_in?
+  before_action :check_password_expired, if: :user_signed_in?
+  before_action :last_activity_at, if: :user_signed_in?
 
   has_scope :q do |controller, scope, value|
     scope.search(value).limit(10)
@@ -45,6 +51,20 @@ class ApplicationController < ActionController::Base
 
   protected
 
+  with_options to: :current_user, allow_nil: true do
+    delegate :current_unity, :current_teacher, :current_teacher_id, :can_change_school_year?, :current_school_year
+    delegate :classroom, :discipline, prefix: true
+  end
+  alias current_user_unity current_unity
+  alias current_user_school_year current_school_year
+  helper_method :current_teacher
+  helper_method :current_teacher_id
+  helper_method :current_unity
+  helper_method :current_user_unity
+  helper_method :current_user_classroom
+  helper_method :current_user_discipline
+  helper_method :can_change_school_year?
+
   def page
     params[:page] || 1
   end
@@ -55,9 +75,13 @@ class ApplicationController < ActionController::Base
 
   def policy(record)
     begin
-      Pundit::PolicyFinder.new(record).policy!.new(current_user, record)
+      result = Pundit::PolicyFinder.new(record).policy!.new(current_user, record)
+      Rails.logger.info 'LOG: ApplicationController#policy - Policy found'
+      result
     rescue
-      ApplicationPolicy.new(current_user, record)
+      result = ApplicationPolicy.new(current_user, record)
+      Rails.logger.info 'LOG: ApplicationController#policy - Policy fallback'
+      result
     end
   end
   helper_method :policy
@@ -71,21 +95,19 @@ class ApplicationController < ActionController::Base
   end
 
   def check_entity_status
-    if current_entity.disabled
-      redirect_to disabled_entity_path unless disabled_entity_page?
-    end
+    redirect_to disabled_entity_path if current_entity.disabled
   end
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.for(:sign_in) do |u|
+    devise_parameter_sanitizer.permit(:sign_in) do |u|
       u.permit(:credentials, :password, :remember_me)
     end
 
-    devise_parameter_sanitizer.for(:account_update) do |u|
+    devise_parameter_sanitizer.permit(:account_update) do |u|
       u.permit(:email, :first_name, :last_name, :login, :phone, :cpf, :current_password, :authorize_email_and_sms)
     end
 
-    devise_parameter_sanitizer.for(:sign_up) do |u|
+    devise_parameter_sanitizer.permit(:sign_up) do |u|
       u.permit(:email, :password, :password_confirmation)
     end
   end
@@ -100,32 +122,29 @@ class ApplicationController < ActionController::Base
   end
 
   def check_for_notifications
-    return unless current_user
+    return unless current_user.current_role_is_admin_or_employee?
 
-    if synchronization = current_user.synchronizations.completed_unnotified
-      flash.now[:notice] = t("ieducar_api_synchronization.completed")
-      synchronization.notified!
-    elsif synchronization = current_user.synchronizations.last_error
-      flash.now[:alert] = t(
-        "ieducar_api_synchronization.error",
-        error: current_user.admin? && synchronization.full_error_message.present? ?
-               synchronization.full_error_message :
-               synchronization.error_message
-      )
-      synchronization.notified!
+    synchronizations = current_user.synchronizations.unnotified
+
+    return unless synchronizations.exists?
+
+    if (synchronization = synchronizations.completed_unnotified)
+      flash.now[:notice] = t('ieducar_api_synchronization.completed')
+    elsif (synchronization = current_user.synchronizations.last_error)
+      flash.now[:alert] =
+        t('ieducar_api_synchronization.error', error: synchronization.error_by_user(current_user))
     end
+
+    synchronization&.notified!
   end
 
   def check_for_current_user_role
-    return unless current_user
-
-    if !valid_current_role?
-      flash.now[:warning] = t("current_role.check.warning")
-    end
+    flash.now[:warning] = t('current_role.check.warning') unless valid_current_role?
   end
 
   def current_entity_configuration
-    @current_entity_configuration ||= EntityConfiguration.first
+    cache_key = "EntityConfiguration##{current_entity.id}"
+    @current_entity_configuration ||= Rails.cache.fetch(cache_key, expires_in: 1.day) { EntityConfiguration.first }
   end
   helper_method :current_entity_configuration
 
@@ -136,13 +155,9 @@ class ApplicationController < ActionController::Base
   helper_method :current_entity
 
   def current_configuration
-    @configuration ||= IeducarApiConfiguration.current
+    @current_configuration ||= IeducarApiConfiguration.current
   end
   helper_method :current_configuration
-
-  def api
-    @api ||= IeducarApi::StudentRegistrations.new(current_configuration.to_api)
-  end
 
   def user_not_authorized(exception)
     policy_name = exception.policy.class.to_s.underscore
@@ -155,203 +170,216 @@ class ApplicationController < ActionController::Base
     redirect_to edit_ieducar_api_configurations_path, alert: exception.message
   end
 
-  def current_teacher
-    current_user.try(:current_teacher)
-  end
-  helper_method :current_teacher
-
-  def current_teacher_id
-    current_teacher.try(:id)
-  end
-  helper_method :current_teacher_id
-
   def current_school_calendar
-    return if current_user.admin? && current_user_unity.blank?
+    @current_school_calendar ||=
+      begin
+        return if current_user.admin? && current_unity.blank?
 
-    CurrentSchoolCalendarFetcher.new(current_user_unity, current_user_classroom, current_user_school_year).fetch
+        CurrentSchoolCalendarFetcher.new(
+          current_unity,
+          current_user_classroom,
+          current_school_year
+        ).fetch
+      end
   end
+  helper_method :current_school_calendar
 
   def current_test_setting
-    CurrentTestSettingFetcher.new(current_school_calendar).fetch
+    TestSettingFetcher.current(current_user.try(:current_classroom))
+  end
+
+  def current_test_setting_step(step)
+    TestSettingFetcher.current(current_user.try(:current_classroom), step)
+  end
+
+  def steps_fetcher
+    @steps_fetcher ||= StepsFetcher.new(current_user_classroom)
+  end
+
+  def require_current_year
+    return if current_user_school_year
+
+    flash[:alert] = t('errors.general.require_current_year')
+
+    redirect_to root_path
   end
 
   def require_current_teacher
-    unless current_teacher
-      flash[:alert] = t('errors.general.require_current_teacher')
-      redirect_to root_path
-    end
+    return if current_teacher
+
+    flash[:alert] = t('errors.general.require_current_teacher')
+
+    redirect_to root_path
   end
 
-  def require_current_teacher_discipline_classrooms
-    unless current_teacher && current_teacher.teacher_discipline_classrooms.any?
-      flash[:alert] = t('errors.general.require_current_teacher_discipline_classrooms')
-      redirect_to root_path
-    end
+  def require_current_classroom
+    return if current_user_classroom
+
+    flash[:alert] = t('errors.general.require_current_classroom')
+
+    redirect_to root_path
   end
 
-  def require_current_test_setting
-    unless current_test_setting
-      flash[:alert] = t('errors.general.require_current_test_setting')
-      redirect_to root_path
-    end
-  end
+  def require_allow_to_modify_prev_years
+    return if can_change_school_year?
+    return unless current_user.current_role_is_admin_or_employee?
+    return if (first_step_start_date_for_posting..last_step_end_date_for_posting).to_a.include?(Date.current)
 
-  def require_valid_school_calendar(school_calendar)
-    if school_calendar.steps.count > MAX_STEPS_FOR_SCHOOL_CALENDAR
-      flash[:alert] = I18n.t('errors.general.school_calendar_steps_more_than_limit', unity: current_user_unity)
-      redirect_to root_path
-    end
+    flash[:alert] = t('errors.general.not_allowed_to_modify_prev_years')
+    redirect_to root_path
   end
-
-  def can_change_school_year?
-    @can_change_school_year ||= current_user.can_change_school_year?
-  end
-  helper_method :can_change_school_year?
-
-  def current_user_unity
-    @current_user_unity ||= current_user.current_unity
-  end
-  helper_method :current_user_unity
-
-  def current_user_classroom
-    @current_user_classroom ||= current_user.try(:current_classroom)
-  end
-  helper_method :current_user_classroom
-
-  def current_user_discipline
-    @current_user_discipline ||= current_user.try(:current_discipline)
-  end
-  helper_method :current_user_discipline
-
-  def current_user_available_years
-    return [] unless current_user_unity
-    @current_user_available_years ||= begin
-      YearsFromUnityFetcher.new(current_user_unity.id).fetch.map{|year| { id: year, name: year }}
-    end
-  end
-  helper_method :current_user_available_years
-
-  def current_user_available_teachers
-    return [] unless current_user_unity
-    @current_user_available_teachers ||= begin
-      teachers = Teacher.by_unity_id(current_user_unity).order_by_name
-      if current_school_calendar.try(:year)
-        teachers.by_year(current_school_calendar.try(:year))
-      else
-        teachers
-      end
-    end
-  end
-  helper_method :current_user_available_teachers
-
-  def current_user_available_classrooms
-    return [] unless current_user_unity && current_teacher
-    @current_user_available_classrooms ||= begin
-      classrooms = Classroom.by_unity_and_teacher(current_user_unity, current_teacher).ordered
-      if current_school_calendar.try(:year)
-        classrooms.by_year(current_school_calendar.try(:year))
-      else
-        classrooms
-      end
-    end
-  end
-  helper_method :current_user_available_classrooms
-
-  # @TODO refatorar index do discipline em service e utilizar em ambos
-  def current_user_available_disciplines
-    return [] unless current_user_classroom && current_teacher
-
-    @current_user_available_disciplines ||= Discipline.by_teacher_id(current_teacher)
-                               .by_classroom(current_user_classroom)
-                               .ordered
-  end
-  helper_method :current_user_available_disciplines
-
-  def current_unities
-    @current_unities ||=
-      if current_user.current_user_role.try(:role_administrator?)
-        Unity.ordered
-      else
-        [current_user_unity]
-      end
-  end
-  helper_method :current_unities
-
-  def current_user_school_year
-    current_user.try(:current_school_year)
-  end
-  helper_method :current_user_school_year
 
   def valid_current_role?
     CurrentRoleForm.new(
-      current_user_id: current_user.id,
-      current_user_role_id: current_user.current_user_role_id,
-      teacher_id: current_user.teacher_id,
-      current_classroom_id: current_user.current_classroom_id,
+      current_user: current_user,
+      current_user_role: current_user.current_user_role,
+      current_classroom: current_user.current_classroom,
       current_discipline_id: current_user.current_discipline_id,
-      current_unity_id: current_user.current_unity_id,
-      assumed_teacher_id: current_user.assumed_teacher_id,
+      current_knowledge_area_id: current_user.current_knowledge_area_id,
+      current_unity: current_user.current_unity,
+      current_teacher: current_user.current_teacher,
       current_school_year: current_user.current_school_year
     ).valid?
   end
-  helper_method :valid_current_role?
 
-  def teacher_discipline_score_type
-    return DisciplineScoreTypes::NUMERIC if current_user_classroom.exam_rule.score_type == ScoreTypes::NUMERIC
-    return DisciplineScoreTypes::CONCEPT if current_user_classroom.exam_rule.score_type == ScoreTypes::CONCEPT
-    TeacherDisciplineClassroom.find_by(teacher: current_teacher, discipline: current_user_discipline).score_type if current_user_classroom.exam_rule.score_type == ScoreTypes::NUMERIC_AND_CONCEPT
+  def teacher_discipline_score_types(classroom = current_user_classroom)
+    score_types = []
+
+    classroom.classrooms_grades.each do |classroom_grade|
+      score_types << teacher_discipline_score_type_by_exam_rule(classroom_grade.exam_rule)
+    end
+
+    score_types
   end
 
   def current_user_is_employee_or_administrator?
-    current_user.assumed_teacher_id.blank? && current_user_role_is_employee_or_administrator?
+    current_user.assumed_teacher_id.blank? && current_user.current_role_is_admin_or_employee?
   end
-  helper_method :current_user_is_employee_or_administrator?
 
-  def current_user_role_is_employee_or_administrator?
-    current_user.current_user_role.role_employee? || current_user.current_user_role.role_administrator?
+  def teacher_differentiated_discipline_score_types(classroom = nil, discipline = nil)
+    classroom ||= current_user_classroom
+    discipline ||= current_user_discipline
+
+    score_types = []
+
+    classroom.classrooms_grades.each do |classroom_grade|
+      exam_rule = classroom_grade.exam_rule
+
+      next if exam_rule.blank?
+
+      differentiated_exam_rule = exam_rule.differentiated_exam_rule
+
+      if differentiated_exam_rule.blank? || !classroom_grade.classroom.has_differentiated_students?
+        score_types << teacher_discipline_score_type_by_exam_rule(exam_rule, classroom, discipline)
+      end
+
+      score_types << teacher_discipline_score_type_by_exam_rule(differentiated_exam_rule)
+    end
+
+    score_types
   end
-  helper_method :current_user_role_is_employee_or_administrator?
 
-  def teacher_differentiated_discipline_score_type
-    exam_rule = current_user_classroom.exam_rule
-    differentiated_exam_rule = exam_rule.differentiated_exam_rule
-    return teacher_discipline_score_type unless differentiated_exam_rule.present?
-    return teacher_discipline_score_type unless current_user_classroom.has_differentiated_students?
-    return DisciplineScoreTypes::NUMERIC if differentiated_exam_rule.score_type == ScoreTypes::NUMERIC
-    return DisciplineScoreTypes::CONCEPT if differentiated_exam_rule.score_type == ScoreTypes::CONCEPT
-    TeacherDisciplineClassroom.find_by(teacher: current_teacher, discipline: current_user_discipline).score_type if differentiated_exam_rule.score_type == ScoreTypes::NUMERIC_AND_CONCEPT
+  def teacher_discipline_score_type_by_exam_rule(exam_rule, classroom = nil, discipline = nil)
+    return if exam_rule.blank?
+    return unless (score_type = exam_rule.score_type)
+    return if score_type == ScoreTypes::DONT_USE
+    return score_type if [ScoreTypes::NUMERIC, ScoreTypes::CONCEPT].include?(score_type)
+
+    TeacherDisciplineClassroom.find_by(
+      classroom: classroom,
+      teacher: current_teacher,
+      discipline: discipline
+    ).score_type
   end
 
   def set_user_current
     User.current = current_user
+
     begin
-        yield
+      yield
     ensure
-        User.current = nil
+      User.current = nil
     end
   end
 
   def set_thread_origin_type
     Thread.current[:origin_type] = OriginTypes::WEB
+
     begin
-        yield
+      yield
     ensure
-        Thread.current[:origin_type] = nil
+      Thread.current[:origin_type] = nil
     end
+  end
+
+  def allowed_api_header?
+    header_name1 = Rails.application.secrets[:AUTH_HEADER_NAME1] || 'TOKEN'
+    validation_method1 = Rails.application.secrets[:AUTH_VALIDATION_METHOD1] || '=='
+    token1 = Rails.application.secrets[:AUTH_TOKEN1]
+
+    header_name2 = Rails.application.secrets[:AUTH_HEADER_NAME2] || 'TOKEN'
+    validation_method2 = Rails.application.secrets[:AUTH_VALIDATION_METHOD2] || '=='
+    token2 = Rails.application.secrets[:AUTH_TOKEN2]
+
+    request.headers[header_name1].send(validation_method1, token1) ||
+      (token2.present? && request.headers[header_name2].send(validation_method2, token2))
   end
 
   private
 
-  def disabled_entity_page?
-    controller_name.eql?('pages') && action_name.eql?('disabled_entity')
+  def set_current_user_role_id
+    return if request.xhr?
+    return if current_user.current_user_role_id?
+
+    current_user.current_user_role_id = current_user.user_roles.first&.id || return
+    current_user.save
+  end
+
+  def set_current_unity_id
+    return if request.xhr?
+    return unless current_user.current_role_is_admin_or_employee_or_teacher?
+    return if current_user.current_unity_id?
+    return unless current_user.current_user_role_id?
+
+    current_user.current_unity_id ||= current_user.current_user_role&.unity_id
+    current_user.save
+  end
+
+  def current_year_steps
+    @current_year_steps ||= begin
+      steps = steps_fetcher.steps if current_user_classroom.present?
+      year = current_school_year || current_school_calendar.year
+      steps ||= SchoolCalendar.find_by(unity_id: current_unity.id, year: year).steps
+      steps
+    end
+  end
+
+  def first_step_start_date_for_posting
+    current_year_steps.first.start_date_for_posting
+  end
+
+  def last_step_end_date_for_posting
+    current_year_steps.last.end_date_for_posting
   end
 
   def set_honeybadger_context
+    if (request.path || '').include?('api/v2')
+      classroom_id = params[:classroom_id]
+      teacher_id = params[:teacher_id]
+      discipline_id = params[:discipline_id]
+    else
+      classroom_id = current_user_classroom.try(:id)
+      teacher_id = current_teacher.try(:id)
+      discipline_id = current_user_discipline.try(:id)
+    end
+
     Honeybadger.context(
       entity: current_entity.try(:name),
-      classroom_id: params[:classroom_id],
-      teacher_id: params[:teacher_id],
-      discipline_id: params[:discipline_id]
+      current_classroom_id: classroom_id,
+      current_teacher_id: teacher_id,
+      current_discipline_id: discipline_id,
+      current_unity_id: current_unity.try(:id),
+      current_year: current_school_year
     )
   end
 
@@ -360,6 +388,15 @@ class ApplicationController < ActionController::Base
     File.open("#{Rails.root}/public#{name}", 'wb') do |f|
       f.write(pdf_to_s)
     end
+
+    username = Rails.application.secrets[:REPORTS_SERVER_USERNAME]
+    server = Rails.application.secrets[:REPORTS_SERVER_IP]
+    dir = Rails.application.secrets[:REPORTS_SERVER_DIR]
+
+    if username && server && dir
+      system("rsync -aHAXx --remove-source-files --quiet \"ssh -T -c aes128-gcm@openssh.com -o Compression=no -x \" #{Rails.root}/public#{name} #{username}@#{server}:#{dir}")
+    end
+
     redirect_to name
   end
 
@@ -367,4 +404,62 @@ class ApplicationController < ActionController::Base
     "/relatorios/#{prefix}-#{SecureRandom.hex}.pdf"
   end
 
+  def check_user_has_name
+    return if current_user.first_name.present?
+    return if target_path?
+
+    flash[:alert] = t('errors.general.check_user_has_name')
+
+    redirect_to edit_account_path
+  end
+
+  def check_password_expired
+    days_to_expire_password = GeneralConfiguration.current.days_to_expire_password || 0
+    return if current_user.admin? || days_to_expire_password.zero? || target_path?
+
+    days_after_last_password_change = (Date.current - current_user.last_password_change.to_date).to_i
+    return if days_after_last_password_change <= days_to_expire_password
+
+    flash[:alert] = t('errors.general.expired_password')
+
+    redirect_to edit_account_path
+  end
+
+  def last_activity_at
+    current_user.last_activity_at = Date.current
+    current_user.save
+  end
+
+  def target_path?
+    request_path = Rails.application.routes.recognize_path(request.path, method: request.env['REQUEST_METHOD'])
+
+    request_path[:controller] == 'accounts' && (request_path[:action] == 'edit' ||
+                                                request_path[:action] == 'update')
+  end
+
+  def weak_password?(password)
+    return false if password.blank?
+
+    if (password =~ /[A-Z]/).nil? || (password =~ /[a-z]/).nil? || (password =~ /[0-9]/).nil? ||
+       (password =~ /[!@#\$%^&*?_~-]/).nil?
+      true
+    else
+      false
+    end
+  end
+
+  def error_generic(expection)
+    binding.pry
+    set_honeybadger_error(expection)
+
+    unless Rails.env.development?
+      redirect_to :root
+    end
+  end
+
+  def set_honeybadger_error(expection)
+    flash[:success] = nil
+    flash[:alert] = t('errors.general.error')
+    Honeybadger.notify(expection)
+  end
 end

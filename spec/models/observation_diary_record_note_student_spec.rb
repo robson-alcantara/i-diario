@@ -1,15 +1,28 @@
 require 'rails_helper'
 
 RSpec.describe ObservationDiaryRecordNoteStudent do
-  let(:school_calendar) { create(:school_calendar_with_one_step, year: 2015) }
-  let(:exam_rule) { create(:exam_rule, frequency_type: FrequencyTypes::BY_DISCIPLINE) }
-  let(:classroom) { create(:classroom, exam_rule: exam_rule) }
+  let(:discipline) { create(:discipline) }
+  let(:teacher) { create(:teacher) }
+  let(:classroom) {
+    create(
+      :classroom,
+      :with_classroom_semester_steps,
+      :with_teacher_discipline_classroom,
+      :by_discipline,
+      discipline: discipline,
+      teacher: teacher
+    )
+  }
+  let(:school_calendar) { classroom.calendar.school_calendar }
   let(:observation_diary_record) do
     create(
-      :observation_diary_record_with_notes,
+      :observation_diary_record,
+      :with_notes,
       school_calendar: school_calendar,
       classroom: classroom,
-      date: '17/03/2015'
+      discipline: discipline,
+      teacher: teacher,
+      date: Date.current - 1.day
     )
   end
   let(:observation_diary_record_note) do
@@ -37,10 +50,13 @@ RSpec.describe ObservationDiaryRecordNoteStudent do
 
     it 'should require unique value for student scoped to observation_diary_record_note_id' do
       observation_diary_record = create(
-        :observation_diary_record_with_notes,
+        :observation_diary_record,
+        :with_notes,
         school_calendar: school_calendar,
         classroom: classroom,
-        date: '18/03/2015'
+        discipline: discipline,
+        teacher: teacher,
+        date: Date.current
       )
       observation_diary_record_note = build(
         :observation_diary_record_note,
@@ -51,7 +67,7 @@ RSpec.describe ObservationDiaryRecordNoteStudent do
         :observation_diary_record_note_student,
         observation_diary_record_note: observation_diary_record_note
       )
-      
+
       expect(subject).to validate_uniqueness_of(:student).scoped_to(:observation_diary_record_note_id)
     end
   end

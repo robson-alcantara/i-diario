@@ -27,7 +27,7 @@ class DisciplineTeachingPlanPdf < BaseReport
 
   def header
     header_cell = make_cell(
-      content: 'Plano de ensino por disciplina',
+      content: Translator.t('navigation.discipline_teaching_plans'),
       size: 12,
       font_style: :bold,
       background_color: 'DEDEDE',
@@ -128,17 +128,31 @@ class DisciplineTeachingPlanPdf < BaseReport
       column(-1).border_right_width = 0.25
     end
 
-    objectives = teaching_plan.objectives || '-'
-    content = teaching_plan.contents.present? ? teaching_plan.contents_ordered.map(&:to_s).join(', ') : '-'
+    thematic_unit = @discipline_teaching_plan.thematic_unit.presence
+    content = teaching_plan.contents.present? ? teaching_plan.contents_ordered.map(&:to_s).join("\n ") : '-'
+    objectives = teaching_plan.objectives.present? ? teaching_plan.objectives_ordered.map(&:to_s).join("\n ") : '-'
     methodology = teaching_plan.methodology || '-'
     evaluation = teaching_plan.evaluation || '-'
     references = teaching_plan.references || '-'
 
-    text_box_truncate('Objetivos', objectives)
-    text_box_truncate('Conteúdos', content)
-    text_box_truncate('Metodologia', methodology)
-    text_box_truncate('Avaliação', evaluation)
-    text_box_truncate('Referências', references)
+    thematic_unit_label = Translator.t('activerecord.attributes.discipline_teaching_plan.thematic_unit')
+    contents_label = Translator.t('activerecord.attributes.discipline_teaching_plan.contents')
+    objectives_label = Translator.t('activerecord.attributes.discipline_teaching_plan.objectives')
+    methodology_label_translation = Translation.find_by(key: 'navigation.methodology_by_discipline', group: 'teaching_plans').translation
+    methodology_label = methodology_label_translation.present? ? methodology_label_translation : 'Metodologia'
+
+    evaluation_label_translation = Translation.find_by(key: 'navigation.avaliation_by_discipline', group: 'teaching_plans').translation
+    evaluation_label = evaluation_label_translation.present? ? evaluation_label_translation : 'Avaliação'
+
+    references_label_translation = Translation.find_by(key: 'navigation.references_by_discipline', group: 'teaching_plans').translation
+    references_label = references_label_translation.present? ? references_label_translation : 'Referências'
+
+    text_box_truncate(thematic_unit_label, thematic_unit) if thematic_unit
+    text_box_truncate(contents_label, content)
+    text_box_truncate(objectives_label, objectives)
+    text_box_truncate(methodology_label, methodology)
+    text_box_truncate(evaluation_label, evaluation)
+    text_box_truncate(references_label, references)
   end
 
   def body
@@ -163,7 +177,7 @@ class DisciplineTeachingPlanPdf < BaseReport
 
   def class_plan_attribute
     @class_plan_header_cell = make_cell(
-      content: 'Plano de ensino',
+      content: Translator.t('navigation.teaching_plans_menu'),
       size: 12,
       font_style: :bold,
       background_color: 'DEDEDE',
@@ -202,7 +216,7 @@ class DisciplineTeachingPlanPdf < BaseReport
       colspan: 3
     )
     @discipline_cell = make_cell(
-      content: @discipline_teaching_plan.discipline.description,
+      content: @discipline_teaching_plan.discipline.to_s,
       size: 10,
       borders: [:bottom, :left, :right],
       padding: [0, 2, 4, 4],
@@ -285,9 +299,9 @@ class DisciplineTeachingPlanPdf < BaseReport
   end
 
   def period_attribute_text
-    return teaching_plan.school_term_type_humanize if teaching_plan.school_term_type == SchoolTermTypes::YEARLY
+    return teaching_plan.school_term_type.to_s if teaching_plan.yearly?
 
-    teaching_plan.school_term_humanize
+    teaching_plan.school_term_type_step_humanize
   end
 
   def teaching_plan

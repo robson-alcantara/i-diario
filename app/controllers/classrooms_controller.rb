@@ -11,6 +11,8 @@ class ClassroomsController < ApplicationController
     end
     score_type = params[:score_type]
 
+    (params[:filter] || []).delete(:by_grade) if params.dig(:filter, :by_grade).blank?
+
     @classrooms = apply_scopes(Classroom).ordered
     if params[:include_unity]
       @classrooms = @classrooms.includes(:unity)
@@ -19,6 +21,36 @@ class ClassroomsController < ApplicationController
     @classrooms = @classrooms.by_score_type(ScoreTypes.value_for(score_type.upcase)) if score_type
     @classrooms = @classrooms.by_year(year) if year
     @classrooms = @classrooms.ordered.uniq
+  end
+
+  def multi_grade
+    return false unless current_user.current_role_is_admin_or_employee?
+
+    render json: current_user_classroom.multi_grade?
+  end
+
+  def by_unity
+    return nil if params[:unity_id].blank?
+
+    render json: classrooms_to_select2(params[:unity_id])
+  end
+
+  def classrooms_to_select2(unity_id)
+    classrooms = Classroom.by_unity(unity_id)
+                     .by_year(current_user_school_year || Date.current.year)
+                     .ordered
+
+    if current_user.teacher?
+      classrooms = classrooms.by_teacher_id(current_teacher.id)
+    end
+
+    classrooms.map do |classroom|
+      OpenStruct.new(
+        id: classroom.id,
+        name: classroom.description.to_s,
+        text: classroom.description.to_s
+      )
+    end
   end
 
   def show

@@ -4,10 +4,13 @@ module Api
       respond_to :json
 
       def index
-        frequency_type_resolver = FrequencyTypeResolver.new(classroom, teacher)
-        general_frequency = frequency_type_resolver.general?
+        frequency_type_definer = FrequencyTypeDefiner.new(classroom, teacher, year: classroom.year)
+        frequency_type_definer.define!
 
-        @daily_frequencies = DailyFrequency.by_classroom_id(params[:classroom_id]).by_period(period)
+        general_frequency = frequency_type_definer.frequency_type == FrequencyTypes::GENERAL
+
+        @daily_frequencies = DailyFrequency.by_classroom_id(params[:classroom_id])
+                                           .by_period_or_by_teacher(period, teacher)
         @daily_frequencies = @daily_frequencies.general_frequency if general_frequency
         @daily_frequencies = @daily_frequencies.by_discipline_id(params[:discipline_id]) unless general_frequency
 
@@ -27,6 +30,15 @@ module Api
 
         creator = DailyFrequenciesCreator.new(frequency_params)
         creator.find_or_create!
+
+        if (daily_frequency = creator.daily_frequencies[0])
+          UniqueDailyFrequencyStudentsCreator.call_worker(
+            current_entity.id,
+            daily_frequency.classroom_id,
+            daily_frequency.frequency_date,
+            current_teacher_id
+          )
+        end
 
         if params[:class_numbers].present?
           render json: creator.daily_frequencies
@@ -49,7 +61,8 @@ module Api
           frequency_date: params[:frequency_date],
           class_numbers: @class_numbers,
           school_calendar: current_school_calendar,
-          period: period
+          period: period,
+          owner_teacher_id: params[:teacher_id] || teacher_regent.try(:id)
         }
       end
 
@@ -74,7 +87,7 @@ module Api
       end
 
       def user_id
-        @user_id ||= params[:user_id] || 1
+        @user_id ||= params[:user_id] || User.find_by_teacher_id(params[:teacher_id])&.id || 1
       end
 
       def period
@@ -83,6 +96,13 @@ module Api
           params['classroom_id'],
           params['discipline_id']
         ).teacher_period
+      end
+
+      def teacher_regent
+        TeacherRegentFetcher.new(
+          classroom.id,
+          classroom.year
+        ).teacher_regent
       end
     end
   end

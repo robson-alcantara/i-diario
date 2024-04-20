@@ -13,6 +13,7 @@ pt-BR:
     test_settings: 'configuracoes-de-avaliacoes-numericas'
     school_calendars: 'calendarios-letivo'
     school_calendar_events: 'eventos'
+    school_calendar_event_batches: 'eventos-em-lote'
     discipline_teaching_plans: 'planos-de-ensino-por-disciplina'
     knowledge_area_teaching_plans: 'planos-de-ensino-por-areas-de-conhecimento'
     avaliations: 'avaliacoes'
@@ -22,6 +23,7 @@ pt-BR:
     school_term_recovery_diary_records: 'diario-de-recuperacoes-de-etapas'
     final_recovery_diary_records: 'diario-de-recuperacoes-finais'
     avaliation_recovery_diary_records: 'diario-de-recuperacoes-de-avaliacoes'
+    avaliation_recovery_lowest_notes: 'diario-de-recuperacoes-de-avaliacoes-da-menor-nota'
     absence_justifications: 'justificativas-de-falta'
     observation_diary_records: 'diario-de-observacoes'
     conceptual_exams: 'diario-de-avaliacoes-conceituais'
@@ -34,7 +36,7 @@ pt-BR:
     daily_record_readonly: 'diarios-somente-leitura'
     observation_record: 'registro-de-observacoes'
     exam_record: 'registro-de-avaliacoes'
-    exam_record_report: 'registro-de-avaliacao'
+    exam_record_report: 'registro-de-avaliacao-numerica'
     knowledge_area_lesson_plan: 'planos-de-aula-por-areas-de-conhecimento'
     knowledge_area_lesson_plans: 'planos-de-aula-por-areas-de-conhecimento'
     knowledge_area_content_record: 'registros-de-conteudos-por-areas-de-conhecimento'
@@ -53,7 +55,6 @@ pt-BR:
     contents: 'conteudos'
     user_roles: 'permissoes-do-usuario'
     teacher_report_cards: 'boletim-do-professor'
-    new_role_modal_feature: 'nova-funcionalidade-modal-selecao-de-perfil'
     discipline_lesson_plan: 'planos-de-aula-por-disciplina'
     discipline_lesson_plans: 'planos-de-aulas-por-disciplina'
     discipline_content_record: 'registros-de-conteudos-por-disciplina'
@@ -72,6 +73,14 @@ pt-BR:
     complementary_exams: 'diario-de-avaliacoes-complementares'
     knowledge_area_lesson_plan_record: 'registro-de-conteudo-por-areas-de-conhecimento-registros-de-conteudo'
     admin_synchronizations: 'admin-sincronizacoes'
+    learning_objectives_and_skills: 'objetivos-de-aprendizagem-e-habilidades'
+    translations: 'dicionario-de-termos-bncc'
+    infrequency_trackings: 'acompanhamento-de-infrequencias'
+    pedagogical_trackings: 'acompanhamento-pedagogico'
+    pedagogical_trackings_teachers: 'acompanhamento-pedagogico-professores'
+    daily_frequencies_in_batchs: 'frequencia-em-lote'
+    attendance_record_report_by_students: 'registro-de-frequencia-por-aluno'
+    attendance_record_report_by_students_report: 'registro-de-frequencia-por-aluno-report'
     opn_tb_exams: 'tabelas-de-pareceres'
     progress: 'progressos'
     parents: 'pais'
@@ -81,8 +90,8 @@ pt-BR:
     consolidated_progress: 'progressos-consolidado'
     monthly_frequencies: 'relatorio-de-frequencias-mensais'
     minutes_of_final_results: 'atas-de-resultados-finais'
-
     # actions
+    copy: 'copiar'
     edit: 'editar'
     edit_multiples: 'editar-diversos'
     new: 'novo'
@@ -96,7 +105,6 @@ pt-BR:
     cancel: 'cancelar'
     parents: 'pais'
     employees: 'servidores'
-    search_api: 'api'
     history: 'historico'
     confirm: "confirmar"
     preview: "pre-visualizar"
@@ -108,14 +116,4 @@ pt-BR:
     create_multiple_classrooms: 'criar-multiplas-turmas'
     by_date: 'por-data'
     by_date_range: 'por-periodo'
-
-    #madis
-    access: "acesso"
-    request_access: "solicitaracesso"
-    send_access: "enviarfimacesso"
-    send_access_batch: "enviarregistrobatch"
-    biometric: "biometria"
-    send_biometric: "enviarbiometria"
-    request_biometric: "solicitarbiometria"
-    command: "comando"
-    request_command: "solicitarcomando"
+    lessons_boards: 'quadro-de-aulas'

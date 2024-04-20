@@ -12,19 +12,28 @@
       </div>
 
       <div class="col col-sm-4">
-        <%= f.input :classroom_id, as: :select2_classroom, user: current_user %>
+        <% if @admin_or_teacher %>
+          <%= f.input :classroom_id, as: :select2_classroom, user: current_user, record: f.object %>
+        <% else %>
+          <%= f.input :classroom_id, as: :select2, elements: @classrooms, user: current_user, record: f.object %>
+        <% end %>
       </div>
 
       <div class="col col-sm-4">
-        <%= f.input :discipline_id, as: :select2_discipline, user: current_user,
-          classroom_id: @transfer_note.classroom_id %>
+        <% if @admin_or_teacher %>
+          <%= f.input :discipline_id, as: :select2_discipline, user: current_user, record: f.object,
+                classroom_id: @transfer_note.classroom_id %>
+        <% else %>
+          <%= f.input :discipline_id, as: :select2, elements: @disciplines, user: current_user, record: f.object,
+                classroom_id: @transfer_note.classroom_id %>
+        <% end %>
       </div>
     </div>
 
     <div class="row">
       <div class="col col-sm-4">
         <%= f.input :step_id, as: :select2_step, classroom: current_user_classroom,
-          readonly: @transfer_note.persisted?, required: true %>
+              readonly: @transfer_note.persisted?, required: true %>
       </div>
 
       <div class="col col-sm-4">
@@ -99,6 +108,6 @@
       <%= link_to t('views.form.history'), history_transfer_note_path(@transfer_note), class: 'btn btn-info' %>
     <% end %>
 
-    <%= f.submit t('views.form.save'), class: 'btn btn-primary' %>
+    <%= f.submit t('views.form.save'), class: 'btn btn-primary', data: { disable_with: 'Salvando...'} %>
   </footer>
 <% end %>

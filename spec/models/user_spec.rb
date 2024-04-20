@@ -28,41 +28,6 @@ RSpec.describe User, type: :model do
     it { expect(subject).to allow_value('admin@example.com').for(:email) }
     it { expect(subject).to_not allow_value('admin@examplecom', 'adminexample.com').for(:email).with_message('use apenas letras (a-z), números e pontos.') }
 
-    describe '#user_roles' do
-      it 'validates uniqueness of student role' do
-        subject = User.new
-
-        subject.user_roles << UserRole.new(role: roles(:student))
-        subject.user_roles << UserRole.new(role: roles(:student))
-
-        subject.valid?
-
-        expect(subject.errors['user_roles']).to include('não é válido')
-      end
-
-      it 'validates uniqueness of parent role' do
-        subject = User.new
-
-        subject.user_roles << UserRole.new(role: roles(:parent))
-        subject.user_roles << UserRole.new(role: roles(:parent))
-
-        subject.valid?
-
-        expect(subject.errors['user_roles']).to include('não é válido')
-      end
-
-      it 'accepts diferent roles' do
-        subject = User.new
-
-        subject.user_roles.build(user: subject, role: roles(:parent))
-        subject.user_roles.build(user: subject, role: roles(:student))
-
-        subject.valid?
-
-        expect(subject.errors['user_roles']).to be_blank
-      end
-    end
-
     context 'when without email and without cpf' do
       it 'should require email or cpf' do
         subject.email = nil
@@ -145,18 +110,23 @@ RSpec.describe User, type: :model do
       expect(subject).to_not be_active_for_authentication
     end
 
-    it 'can authenticate if status is actived' do
-      subject.status = UserStatus::ACTIVED
+    it 'can authenticate if status is active' do
+      subject.status = UserStatus::ACTIVE
 
       expect(subject).to be_active_for_authentication
     end
   end
 
   describe '#set_current_user_role!' do
-    subject { create(:user_with_user_role) }
+    subject { create(:user) }
 
-    it 'should update the #current_user_role_id' do
-      expect { subject.set_current_user_role!(subject.user_roles.first.id) }.to change{ subject.current_user_role_id }.from(nil).to(subject.user_roles.first.id)
+    it 'updates the #current_user_role_id' do
+      user_role = create(:user_role)
+      subject.user_roles << user_role
+
+      expect {
+        subject.set_current_user_role!(user_role.id)
+      }.to change { subject.current_user_role_id }.from(nil).to(user_role.id)
     end
   end
 end

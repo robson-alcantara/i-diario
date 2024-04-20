@@ -5,12 +5,36 @@ $(function () {
   window.disciplines = [];
 
   var $legendContainer = $('[data-event-legend-container]'),
+      $checkboxContainer = $('[data-event-checkbox-container]'),
       $eventType = $('#school_calendar_event_event_type'),
       $unity = $('#school_calendar_event_unity_id'),
       $course = $('#school_calendar_event_course_id'),
       $grade = $('#school_calendar_event_grade_id'),
       $classroom = $('#school_calendar_event_classroom_id'),
       $discipline = $('#school_calendar_event_discipline_id');
+
+  var fetchExamRule = function (params, callback) {
+    $.getJSON('/exam_rules?' + $.param(params)).always(function (data) {
+      callback(data);
+    });
+  };
+
+  var checkExamRule = function(params){
+    fetchExamRule(params, function(data){
+      var examRule = data.exam_rule;
+      if (!$.isEmptyObject(examRule)) {
+        if (examRule.frequency_type == 2 || examRule.allow_frequency_by_discipline) {
+          $('.school_calendar_event_discipline_id').show();
+        }else {
+          $discipline.val('').select2({ data: [] });
+          $('.school_calendar_event_discipline_id').hide();
+        }
+      }else {
+        $discipline.val('').select2({ data: [] });
+        $('.school_calendar_event_discipline_id').hide();
+      }
+    });
+  }
 
   var fetchGrades = function (params, callback) {
     if (_.isEmpty(window.grades)) {
@@ -127,6 +151,8 @@ $(function () {
         $discipline.val($discipline.find('option:first-child').val()).trigger('change');
       });
     }
+
+    checkExamRule({ classroom_id: e.val });
   });
 
   var isEventTypeEqualTo = function(type) {
@@ -141,12 +167,20 @@ $(function () {
     return isEventTypeEqualTo('extra_school');
   }
 
+  var eventTypeIsExtraSchool = function() {
+    return isEventTypeEqualTo('extra_school');
+  }
+
   var eventTypeIsNoSchoolWithFrequency = function() {
     return isEventTypeEqualTo('no_school_with_frequency');
   }
 
   var shouldHideLegend = function() {
     return eventTypeIsBlank() || eventTypeIsExtraSchool() || eventTypeIsNoSchoolWithFrequency();
+  }
+
+  var shouldShowCheckbox = function() {
+    return eventTypeIsExtraSchool();
   }
 
    var togleLegendContainerVisibility = function() {
@@ -157,6 +191,21 @@ $(function () {
     }
   }
 
+  var togleCheckboxContainerVisibility = function() {
+    if (shouldShowCheckbox()) {
+      $checkboxContainer.removeClass('hidden');
+    } else {
+      $checkboxContainer.addClass('hidden');
+    }
+  }
+
   $eventType.on('change', togleLegendContainerVisibility);
   togleLegendContainerVisibility();
+
+  $eventType.on('change', togleCheckboxContainerVisibility);
+  togleCheckboxContainerVisibility();
+
+  if(!_.isEmpty($classroom.val())){
+    checkExamRule({ classroom_id: $classroom.val() });
+  }
 });

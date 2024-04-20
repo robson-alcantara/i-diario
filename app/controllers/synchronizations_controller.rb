@@ -1,7 +1,8 @@
 class SynchronizationsController < ApplicationController
   def create
+    full_synchronization = params.fetch(:full, false)
     configuration = IeducarApiConfiguration.current
-    @synchronization = configuration.start_synchronization(current_user, current_entity.id)
+    @synchronization = configuration.start_synchronization(current_user, current_entity.id, full_synchronization)
 
     if @synchronization.persisted?
       respond_with @synchronization, location: edit_ieducar_api_configurations_path
@@ -10,6 +11,18 @@ class SynchronizationsController < ApplicationController
 
       redirect_to edit_ieducar_api_configurations_path
     end
+
+  rescue ActiveRecord::RecordNotUnique
+    redirect_to edit_ieducar_api_configurations_path
+  end
+
+  def current_syncronization_data
+    current_syncronization = IeducarApiSynchronization.find_by(status: ApiSynchronizationStatus::STARTED)
+
+    render json: {
+      time_running: current_syncronization&.time_running,
+      done_percentage: current_syncronization&.done_percentage
+    }
   end
 
   private

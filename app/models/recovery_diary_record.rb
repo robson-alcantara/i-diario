@@ -1,7 +1,9 @@
 class RecoveryDiaryRecord < ActiveRecord::Base
   include Audit
+  include ColumnsLockable
   include TeacherRelationable
 
+  not_updatable only: [:classroom_id, :discipline_id]
   teacher_relation_columns only: [:classroom, :discipline]
 
   acts_as_copy_target
@@ -10,7 +12,7 @@ class RecoveryDiaryRecord < ActiveRecord::Base
   has_associated_audits
 
   belongs_to :unity
-  belongs_to :classroom, -> { includes(:exam_rule) }
+  belongs_to :classroom, -> { includes(:classrooms_grades) }
   belongs_to :discipline
 
   has_many :students, -> { includes(:student).ordered },
@@ -19,9 +21,17 @@ class RecoveryDiaryRecord < ActiveRecord::Base
 
   accepts_nested_attributes_for :students, allow_destroy: true
 
-  has_one :school_term_recovery_diary_record
-  has_one :final_recovery_diary_record
-  has_one :avaliation_recovery_diary_record
+  has_one :school_term_recovery_diary_record, dependent: :destroy
+  has_one :final_recovery_diary_record, dependent: :destroy
+  has_one :avaliation_recovery_diary_record, dependent: :destroy
+  has_one :avaliation_recovery_lowest_note, dependent: :destroy
+
+  scope :by_teacher_id,
+        lambda { |teacher_id|
+          joins(discipline: :teacher_discipline_classrooms)
+            .where(teacher_discipline_classrooms: { teacher_id: teacher_id })
+            .distinct
+        }
 
   scope :by_classroom_id, lambda { |classroom_id| where(classroom_id: classroom_id) }
   scope :by_unity_id, lambda { |unity_id| where(unity_id: unity_id) }
@@ -41,6 +51,8 @@ class RecoveryDiaryRecord < ActiveRecord::Base
   validate :recorded_at_must_be_less_than_or_equal_to_today
 
   before_validation :self_assign_to_students
+
+  attr_accessor :creator_type
 
   def school_calendar
     CurrentSchoolCalendarFetcher.new(unity, classroom, classroom.try(:year)).fetch

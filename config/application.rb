@@ -1,4 +1,4 @@
-require File.expand_path('../boot', __FILE__)
+require_relative 'boot'
 
 require 'csv'
 require 'rails/all'
@@ -13,14 +13,14 @@ module Educacao
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
-    config.autoload_paths += %W(
-      #{config.root}/lib
-      #{config.root}/app/workers
-      #{config.root}/app/workers/concerns
-      #{config.root}/app/services
-      #{config.root}/app/services/ieducar_synchronizers
-      #{config.root}/app/queries
-    )
+    config.eager_load_paths << Rails.root.join('lib')
+    config.eager_load_paths << Rails.root.join('app/workers')
+    config.eager_load_paths << Rails.root.join('app/workers/ieducar')
+    config.eager_load_paths << Rails.root.join('app/workers/concerns')
+    config.eager_load_paths << Rails.root.join('app/workers/student_dependencies_discarders')
+    config.eager_load_paths << Rails.root.join('app/services')
+    config.eager_load_paths << Rails.root.join('app/services/ieducar_synchronizers')
+    config.eager_load_paths << Rails.root.join('app/queries')
 
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
@@ -35,9 +35,7 @@ module Educacao
 
     config.active_record.schema_format = :sql
 
-    config.active_record.raise_in_transactional_callbacks = true
-
-    config.middleware.insert_before 0, "Rack::Cors" do
+    config.middleware.insert_before 0, Rack::Cors do
       allow do
         origins '*'
         resource '*', :headers => :any, :methods => [:get, :post, :put, :delete, :options]
@@ -46,16 +44,5 @@ module Educacao
     config.to_prepare do
       DeviseController.respond_to :html, :json
     end
-
-    if Rails.env.production? || Rails.env.staging?
-      config.paperclip_defaults = {
-        storage: :s3,
-        s3_region: 'us-east-1',
-        bucket: Rails.application.secrets[:BUCKET_NAME],
-        s3_credentials: "#{Rails.root}/config/aws.yml"
-      }
-    end
-
-    config.exceptions_app = routes
   end
 end

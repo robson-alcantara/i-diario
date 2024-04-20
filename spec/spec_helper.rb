@@ -1,17 +1,20 @@
-# require 'simplecov'
-# SimpleCov.start 'rails'
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
+require 'rspec/retry'
 require 'sidekiq/testing'
 require 'vcr'
+require 'webmock/rspec'
 
 Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
 
 RSpec.configure do |config|
-  config.include Devise::TestHelpers, type: :controller
+  config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Rails.application.routes.url_helpers
-  config.mock_with :rspec
+  config.include FixtureLoad
+  config.mock_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
   config.fixture_path = "#{::Rails.root}/spec/fixtures"
   config.use_transactional_fixtures = false
   config.global_fixtures = :all

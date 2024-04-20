@@ -10,7 +10,7 @@ namespace :db do
       ENV["SCOPE"].blank? || (ENV["SCOPE"] == migration.scope)
     end
 
-    Entity.need_migration.active.find_each(batch_size: 100) do |entity|
+    Entity.find_each(batch_size: 100) do |entity|
       entity.using_connection do
         puts "Migrating db: #{entity.domain}"
 
@@ -29,12 +29,27 @@ namespace :db do
 
       ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
 
-      Entity.need_migration.active.find_each(batch_size: 100) do |entity|
+      Entity.find_each(batch_size: 100) do |entity|
         entity.using_connection do
           puts "Migrating db: #{entity.domain}"
 
           ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
         end
+      end
+    end
+
+    task run_specific_tenant: :environment do
+      begin
+        Entity.find_by_name(ENV["TENANT"].to_sym).using_connection do
+          ActiveRecord::Migrator.migrations_paths = Educacao::Application.config.paths['db/migrate'].expanded
+          ActiveRecord::Migration.verbose = true
+
+          puts "Migrating db: #{Entity.current.domain}"
+
+          ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths)
+        end
+      rescue Exception => e
+        puts "Database #{ENV["TENANT"]} not found"
       end
     end
   end

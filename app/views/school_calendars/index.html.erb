@@ -11,7 +11,13 @@
                 <% end %>
               </td>
               <td></td>
-              <td class="actions" style="width: <%= @school_calendars.any? ? 230 : 130 %>px"><%= link_to t('.synchronize_html'), synchronize_school_calendars_path, class: "btn btn-info pull-right" %></td>
+              <td class="actions" style="width: <%= @school_calendars.any? ? 230 : 130 %>px">
+                <% if current_user.roles.any? { |role| role.administrator? } %>
+                  <%= link_to 'Eventos em lote',
+                              school_calendar_event_batches_path,
+                              class: "btn btn-info pull-right" %>
+                <% end %>
+              </td>
             </tr>
           <tr>
             <th><%= SchoolCalendar.human_attribute_name :year %></th>

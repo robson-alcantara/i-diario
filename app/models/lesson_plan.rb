@@ -1,11 +1,13 @@
-class LessonPlan < ActiveRecord::Base
+class LessonPlan < ApplicationRecord
   include Audit
   include TeacherRelationable
+  include Translatable
 
   teacher_relation_columns only: :classroom
 
   acts_as_copy_target
 
+  attr_accessor :grade_ids, :contents_created_at_position, :objectives_created_at_position
   attr_writer :contents_tags
 
   audited except: [:teacher_id, :old_contents]
@@ -19,7 +21,9 @@ class LessonPlan < ActiveRecord::Base
   has_one :knowledge_area_lesson_plan
 
   has_many :contents_lesson_plans, dependent: :destroy
-  has_many :contents, through: :contents_lesson_plans
+  deferred_has_many :contents, through: :contents_lesson_plans
+  has_many :objectives_lesson_plans, dependent: :destroy
+  deferred_has_many :objectives, through: :objectives_lesson_plans
   has_many :lesson_plan_attachments, dependent: :destroy
 
   accepts_nested_attributes_for :contents, allow_destroy: true
@@ -34,9 +38,10 @@ class LessonPlan < ActiveRecord::Base
 
   validate :no_retroactive_dates
   validate :at_least_one_assigned_content
+  validate :valid_attachments_size
 
-  delegate :unity, :unity_id, to: :classroom
-  delegate :grade, :grade_id, to: :classroom
+  delegate :unity, :unity_id, to: :classroom, allow_nil: true
+  delegate :grades, :grade_ids, :first_grade, to: :classroom, allow_nil: true
 
   scope :by_unity_id, lambda { |unity_id| joins(:classroom).merge(Classroom.by_unity(unity_id)) }
   scope :by_teacher_id, lambda { |teacher_id| where(teacher_id: teacher_id) }
@@ -62,10 +67,37 @@ class LessonPlan < ActiveRecord::Base
   end
 
   def contents_ordered
-    contents.order(' "contents_lesson_plans"."id" ')
+    contents.order('contents_lesson_plans.position')
+  end
+
+  def objectives_ordered
+    objectives.order('objectives_lesson_plans.position')
+  end
+
+  def attachments?
+    lesson_plan_attachments.any?
   end
 
   private
+
+  def valid_attachments_size
+    return if total_attatchments_size < 30000000
+
+    errors.add(:lesson_plan_attachments,
+               'A soma do tamanho dos arquivos anexados ' +
+               'de uma vez não pode ultrapassar 30MB, ' +
+               'revise os arquivos e tente novamente')
+  end
+
+  def total_attatchments_size
+    lesson_plan_attachments
+      .map(&:attachment)
+      .compact
+      .map{ |attachment| attachment.file&.size }
+      .compact
+      .inject(:+)
+      .to_i
+  end
 
   def no_retroactive_dates
     return if start_at.nil? || end_at.nil?

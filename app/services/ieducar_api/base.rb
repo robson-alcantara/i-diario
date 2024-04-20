@@ -1,14 +1,18 @@
 module IeducarApi
   class Base
     class ApiError < RuntimeError; end
+    class NetworkException < StandardError; end
 
-    attr_accessor :url, :access_key, :secret_key, :unity_id
+    RETRY_NETWORK_ERRORS = ['Temporary failure in name resolution', '502 Bad Gateway'].freeze
 
-    def initialize(options = {})
+    attr_accessor :url, :access_key, :secret_key, :unity_id, :full_synchronization
+
+    def initialize(options = {}, full_synchronization = false)
       self.url = options.delete(:url)
       self.access_key = options.delete(:access_key)
       self.secret_key = options.delete(:secret_key)
       self.unity_id = options.delete(:unity_id)
+      self.full_synchronization = full_synchronization
 
       Honeybadger.context(
         url: url,
@@ -22,6 +26,9 @@ module IeducarApi
     end
 
     def fetch(params = {})
+      ignore_modified = params.delete(:ignore_modified)
+      params.reverse_merge!(modified: last_synchronization_date) unless full_synchronization || ignore_modified
+
       assign_staging_secret_keys if Rails.env.staging?
 
       request(RequestMethods::GET, params) do |endpoint, request_params|
@@ -39,8 +46,8 @@ module IeducarApi
     def send_post(params = {})
       assign_staging_secret_keys unless Rails.env.production?
 
-      request(RequestMethods::POST, params) do |endpoint, request_params|
-        RestClient.post("#{endpoint}?#{request_params.to_param}", {})
+      request(RequestMethods::POST, params) do |endpoint, request_params, payload|
+        RestClient.post("#{endpoint}?#{request_params.to_param}", payload, {})
       end
     end
 
@@ -65,32 +72,53 @@ module IeducarApi
         access_key: access_key,
         secret_key: secret_key,
         instituicao_id: unity_id
-      }.reverse_merge(params)
+      }
+      payload = {}
+      method == RequestMethods::GET ? request_params.reverse_merge!(params) : payload = params
 
-      Rails.logger.info "#{method.upcase} #{endpoint}?#{request_params.to_query}"
-      Sidekiq.logger.info "#{method.upcase} #{endpoint}?#{request_params.to_query}"
+      Rails.logger.info "#{method.upcase} #{endpoint}?#{request_params.to_query} payload: #{payload}"
+      Sidekiq.logger.info "#{method.upcase} #{endpoint}?#{request_params.to_query} payload: #{payload}"
 
       Honeybadger.context(
         endpoint: endpoint,
         request_params: request_params,
-        request_url: "#{endpoint}?#{request_params.to_query}"
+        request_url: "#{endpoint}?#{request_params.to_query}",
+        payload: params
       )
 
       begin
-        result = yield(endpoint, request_params)
+        result = if method == RequestMethods::GET
+                   yield(endpoint, request_params)
+                 else
+                   request_params[:action] = params[:resource]
+                   yield(endpoint, request_params, payload)
+                 end
         result = JSON.parse(result)
-      rescue SocketError, RestClient::ResourceNotFound
+      rescue SocketError, RestClient::ResourceNotFound, RestClient::BadGateway => error
+        if RETRY_NETWORK_ERRORS.any? { |network_error| error.message.include?(network_error) }
+          raise NetworkException, error.message
+        end
+
         raise ApiError, 'URL do i-Educar informada não é válida.'
       rescue StandardError => error
         raise ApiError, error.message
       end
 
+      message = result['msgs'].map { |r| r['msg'] }.join(', ')
+
       response = IeducarResponseDecorator.new(result)
       raise_exception = response.any_error_message? && !response.known_error?
-
-      raise ApiError, result['msgs'].map { |r| r['msg'] }.join(', ') if raise_exception
+      raise ApiError, message if raise_exception
 
       result
+    end
+
+    def last_synchronization_date
+      @last_synchronization_date ||= current_api_configuration.synchronized_at
+    end
+
+    def current_api_configuration
+      IeducarApiConfiguration.current
     end
   end
 end

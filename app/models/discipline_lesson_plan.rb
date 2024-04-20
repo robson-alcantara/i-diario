@@ -1,7 +1,8 @@
-class DisciplineLessonPlan < ActiveRecord::Base
+class DisciplineLessonPlan < ApplicationRecord
   include Audit
   include Filterable
   include TeacherRelationable
+  include Translatable
 
   teacher_relation_columns only: :discipline
 
@@ -14,9 +15,8 @@ class DisciplineLessonPlan < ActiveRecord::Base
   belongs_to :discipline
 
   before_destroy :valid_for_destruction?
-  before_destroy :remove_attachments, if: :valid_for_destruction?
 
-  delegate :contents, :classroom, to: :lesson_plan
+  delegate :contents, :objectives, :classroom, to: :lesson_plan
 
   accepts_nested_attributes_for :lesson_plan
 
@@ -31,9 +31,10 @@ class DisciplineLessonPlan < ActiveRecord::Base
   scope :by_discipline_id, ->(discipline_id) { where(discipline_id: discipline_id) }
   scope :by_date, ->(date) { by_date_query(date) }
   scope :by_date_range, lambda { |start_at, end_at|
-    joins(:lesson_plan).where('start_at <= ? AND end_at >= ?', end_at, start_at)
+    joins(:lesson_plan).where('start_at <= ? AND end_at >= ?', end_at.to_date, start_at.to_date)
   }
   scope :ordered, -> { joins(:lesson_plan).order(LessonPlan.arel_table[:start_at].desc) }
+  scope :order_by_classrooms, -> { joins(lesson_plan: :classroom).order(Classroom.arel_table[:description].desc) }
   scope :order_by_lesson_plan_date, -> { joins(:lesson_plan).order(LessonPlan.arel_table[:start_at]) }
   scope :by_author, lambda { |author_type, current_teacher_id|
     if author_type == PlansAuthors::MY_PLANS
@@ -70,10 +71,5 @@ class DisciplineLessonPlan < ActiveRecord::Base
         true
       end
     end
-  end
-
-  def remove_attachments
-    lesson_plan.lesson_plan_attachments.each { |lesson_plan_attachment| lesson_plan_attachment.destroy }
-    lesson_plan.save
   end
 end

@@ -2,31 +2,48 @@ class KnowledgeAreaContentRecordsController < ApplicationController
   has_scope :page, default: 1
   has_scope :per, default: 10
 
+  before_action :require_current_classroom, only: [:index, :new, :edit, :create, :update]
   before_action :require_current_teacher
+  before_action :require_current_classroom, only: [:index, :new, :create, :edit, :update, :show]
+  before_action :require_allow_to_modify_prev_years, only: [:create, :update, :destroy, :clone]
 
   def index
-    author_type = (params[:filter] || []).delete(:by_author)
+    params[:filter] ||= {}
+    author_type = PlansAuthors::MY_PLANS if params[:filter].empty?
+    author_type ||= (params[:filter] || []).delete(:by_author)
 
-    @knowledge_area_content_records = apply_scopes(
-      KnowledgeAreaContentRecord.includes(:knowledge_areas, content_record: [:classroom])
-                                .by_classroom_id(current_user_classroom)
-                                .ordered
-    )
+    set_options_by_user
+    set_knowledge_area_by_classroom(@classrooms.map(&:id))
+
+    @knowledge_area_content_records = fetch_knowledge_area_content_records_by_user
 
     if author_type.present?
       @knowledge_area_content_records = @knowledge_area_content_records.by_author(author_type, current_teacher)
+      params[:filter][:by_author] = author_type
     end
 
     authorize @knowledge_area_content_records
+  end
+
+  def show
+    @knowledge_area_content_record = KnowledgeAreaContentRecord.find(params[:id]).localized
+
+    set_options_by_user
+    set_knowledge_area_by_classroom(@knowledge_area_content_record.classroom_id)
+
+    authorize @knowledge_area_content_record
   end
 
   def new
     @knowledge_area_content_record = KnowledgeAreaContentRecord.new.localized
     @knowledge_area_content_record.build_content_record(
       record_date: Time.zone.now,
-      unity_id: current_user_unity.id
+      unity_id: current_unity.id,
+      classroom_id: current_user_classroom.id
     )
 
+    set_options_by_user
+    set_knowledge_area_by_classroom(current_user_classroom.id)
     authorize @knowledge_area_content_record
   end
 
@@ -36,6 +53,7 @@ class KnowledgeAreaContentRecordsController < ApplicationController
     @knowledge_area_content_record.content_record.teacher = current_teacher
     @knowledge_area_content_record.content_record.content_ids = content_ids
     @knowledge_area_content_record.content_record.origin = OriginTypes::WEB
+    @knowledge_area_content_record.content_record.creator_type = 'knowledge_area_content_record'
     @knowledge_area_content_record.content_record.teacher = current_teacher
     @knowledge_area_content_record.teacher_id = current_teacher_id
 
@@ -44,12 +62,17 @@ class KnowledgeAreaContentRecordsController < ApplicationController
     if @knowledge_area_content_record.save
       respond_with @knowledge_area_content_record, location: knowledge_area_content_records_path
     else
+      set_options_by_user
+      set_knowledge_area_by_classroom(@knowledge_area_content_record.classroom_id)
       render :new
     end
   end
 
   def edit
     @knowledge_area_content_record = KnowledgeAreaContentRecord.find(params[:id]).localized
+
+    set_options_by_user
+    set_knowledge_area_by_classroom(@knowledge_area_content_record.classroom_id)
 
     authorize @knowledge_area_content_record
   end
@@ -60,12 +83,16 @@ class KnowledgeAreaContentRecordsController < ApplicationController
     @knowledge_area_content_record.knowledge_area_ids = resource_params[:knowledge_area_ids].split(',')
     @knowledge_area_content_record.content_record.content_ids = content_ids
     @knowledge_area_content_record.teacher_id = current_teacher_id
+    @knowledge_area_content_record.content_record.current_user = current_user
 
     authorize @knowledge_area_content_record
 
     if @knowledge_area_content_record.save
       respond_with @knowledge_area_content_record, location: knowledge_area_content_records_path
     else
+      set_options_by_user
+      set_knowledge_area_by_classroom(@knowledge_area_content_record.classroom_id)
+
       render :edit
     end
   end
@@ -96,6 +123,14 @@ class KnowledgeAreaContentRecordsController < ApplicationController
 
   private
 
+  def fetch_knowledge_area_content_records_by_user
+    apply_scopes(KnowledgeAreaContentRecord
+      .includes(:knowledge_areas, content_record: [:classroom])
+      .by_classroom_id(@classrooms.map(&:id))
+      .order_by_classroom
+      .ordered)
+  end
+
   def content_ids
     param_content_ids = params[:knowledge_area_content_record][:content_record_attributes][:content_ids] || []
     content_descriptions = params[:knowledge_area_content_record][:content_record_attributes][:content_descriptions] || []
@@ -108,6 +143,7 @@ class KnowledgeAreaContentRecordsController < ApplicationController
   def resource_params
     params.require(:knowledge_area_content_record).permit(
       :knowledge_area_ids,
+      :experience_fields,
       content_record_attributes: [
         :id,
         :unity_id,
@@ -157,24 +193,26 @@ class KnowledgeAreaContentRecordsController < ApplicationController
   end
   helper_method :all_contents
 
-  def fetch_collections
-    fetch_unities
-    fetch_grades
-    fetch_knowledge_areas
-  end
-
   def unities
-    @unities = [current_user_unity]
+    @unities = [current_unity]
   end
   helper_method :unities
 
-  def classrooms
-    @classrooms = Classroom.by_unity_and_teacher(current_user_unity.id, current_teacher.id).ordered
-  end
-  helper_method :classrooms
+  def set_options_by_user
+    return fetch_linked_by_teacher unless current_user.current_role_is_admin_or_employee?
 
-  def knowledge_areas
-    @knowledge_areas = KnowledgeArea.by_teacher(current_teacher).ordered
+    @classrooms = [current_user_classroom]
   end
-  helper_method :knowledge_areas
+
+  def set_knowledge_area_by_classroom(classroom_id)
+    @knowledge_areas = KnowledgeArea.by_teacher(current_teacher)
+                                    .by_classroom_id(classroom_id)
+                                    .ordered
+  end
+
+  def fetch_linked_by_teacher
+    @fetch_linked_by_teacher ||= TeacherClassroomAndDisciplineFetcher.fetch!(current_teacher.id, current_unity, current_school_year)
+    @classrooms ||=  @fetch_linked_by_teacher[:classrooms]
+    @disciplines ||= @fetch_linked_by_teacher[:disciplines]
+  end
 end

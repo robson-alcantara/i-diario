@@ -41,12 +41,15 @@ class FeaturesAccessLevels
       :school_calendar_events,
       :school_calendars,
       :school_term_recovery_diary_records,
-      :test_settings,
       :transfer_notes,
       :teacher_report_cards,
       :complementary_exams,
       :ieducar_api_exam_posting_without_restrictions,
       :change_school_year,
+      :daily_frequencies_in_batchs,
+      :learning_objectives_and_skills,
+      :avaliation_recovery_lowest_notes,
+      :attendance_record_report_by_students,
       :progress_report,
       :parent_report,
       :consolidated_progress_report,
@@ -72,6 +75,7 @@ class FeaturesAccessLevels
   end
 
   private
+
   def self.admin_only_features
     [
       :data_exportations,
@@ -79,7 +83,8 @@ class FeaturesAccessLevels
       :general_configurations,
       :roles,
       :unities,
-      :terms_dictionaries
+      :terms_dictionaries,
+      :translations
     ]
   end
 end

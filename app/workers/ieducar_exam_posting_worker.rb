@@ -16,27 +16,30 @@ class IeducarExamPostingWorker
       )
       posting.finish!
     end
+
+    Honeybadger.notify(exception)
   end
 
-  def perform(entity_id, posting_id, queue = 'exam_posting_send')
+  def perform(entity_id, posting_id, posting_last_id, force_posting)
     entity = Entity.find(entity_id)
 
     entity.using_connection do
       posting = IeducarApiExamPosting.find(posting_id)
+      posting_last = IeducarApiExamPosting.find_by(id: posting_last_id)
 
       case posting.post_type
-      when ApiPostingTypes::NUMERICAL_EXAM
-        ExamPoster::NumericalExamPoster.post!(posting, entity_id, queue)
+      when ApiPostingTypes::NUMERICAL_EXAM, ApiPostingTypes::SCHOOL_TERM_RECOVERY
+        ExamPoster::NumericalExamPoster.post!(posting, entity_id, posting_last, force_posting)
       when ApiPostingTypes::CONCEPTUAL_EXAM
-        ExamPoster::ConceptualExamPoster.post!(posting, entity_id, queue)
+        queue = SmartEnqueuer.new(EXAM_POSTING_QUEUES).less_used_queue
+
+        ExamPoster::ConceptualExamPoster.post!(posting, entity_id, posting_last, queue, force_posting)
       when ApiPostingTypes::DESCRIPTIVE_EXAM
-        ExamPoster::DescriptiveExamPoster.post!(posting, entity_id, queue)
+        ExamPoster::DescriptiveExamPoster.post!(posting, entity_id, posting_last, force_posting)
       when ApiPostingTypes::ABSENCE
-        ExamPoster::AbsencePoster.post!(posting, entity_id, queue)
+        ExamPoster::AbsencePoster.post!(posting, entity_id, posting_last, force_posting)
       when ApiPostingTypes::FINAL_RECOVERY
-        ExamPoster::FinalRecoveryPoster.post!(posting, entity_id, queue)
-      when ApiPostingTypes::SCHOOL_TERM_RECOVERY
-        ExamPoster::SchoolTermRecoveryPoster.post!(posting, entity_id, queue)
+        ExamPoster::FinalRecoveryPoster.post!(posting, entity_id, posting_last, force_posting)
       end
     end
   end

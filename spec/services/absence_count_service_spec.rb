@@ -2,16 +2,22 @@ require 'rails_helper'
 
 RSpec.describe AbsenceCountService, type: :service do
   let(:student) { create(:student) }
-  let(:classroom) { create(:classroom, :current, period: '4') }
   let(:discipline) { create(:discipline) }
-  let(:school_calendar) { create(:school_calendar_with_one_step, :current, unity: classroom.unity) }
-  let(:start_date) { school_calendar.steps.first.start_at }
-  let(:end_date) { school_calendar.steps.first.end_at }
+  let(:classroom) {
+    create(
+      :classroom,
+      :with_classroom_semester_steps,
+      period: Periods::FULL
+    )
+  }
+  let(:step) { classroom.calendar.classroom_steps.first }
+  let(:start_date) { step.start_at }
+  let(:end_date) { step.end_at }
 
   describe '#count' do
     context 'with general presence' do
       subject do
-        described_class.new(student, classroom, start_date, end_date)
+        described_class.new(do_not_send_justified_absence: false)
       end
       context 'when a student is absent in both periods' do
         it 'count as only one absence' do
@@ -20,7 +26,7 @@ RSpec.describe AbsenceCountService, type: :service do
              create_daily_frequency_student(create_daily_frequency(2), false)]
           )
 
-          expect(subject.count).to eq(1)
+          expect(subject.count(student, classroom, start_date, end_date)).to eq(1)
         end
       end
 
@@ -31,7 +37,7 @@ RSpec.describe AbsenceCountService, type: :service do
              create_daily_frequency_student(create_daily_frequency(2), false)]
           )
 
-          expect(subject.count).to eq(0)
+          expect(subject.count(student, classroom, start_date, end_date)).to eq(0)
         end
       end
 
@@ -42,14 +48,14 @@ RSpec.describe AbsenceCountService, type: :service do
              create_daily_frequency_student(create_daily_frequency(2), true)]
           )
 
-          expect(subject.count).to eq(0)
+          expect(subject.count(student, classroom, start_date, end_date)).to eq(0)
         end
       end
     end
 
     context 'with presence by components' do
       subject do
-        described_class.new(student, classroom, start_date, end_date, discipline)
+        described_class.new(do_not_send_justified_absence: false)
       end
 
       context 'when a student is absent in both periods for the same class number' do
@@ -59,7 +65,7 @@ RSpec.describe AbsenceCountService, type: :service do
              create_daily_frequency_student(create_daily_frequency(2, discipline, 1), false)]
           )
 
-          expect(subject.count).to eq(1)
+          expect(subject.count(student, classroom, start_date, end_date, discipline)).to eq(1)
         end
       end
 
@@ -70,7 +76,7 @@ RSpec.describe AbsenceCountService, type: :service do
              create_daily_frequency_student(create_daily_frequency(2, discipline, 1), false)]
           )
 
-          expect(subject.count).to eq(0)
+          expect(subject.count(student, classroom, start_date, end_date, discipline)).to eq(0)
         end
       end
 
@@ -81,7 +87,7 @@ RSpec.describe AbsenceCountService, type: :service do
              create_daily_frequency_student(create_daily_frequency(2, discipline, 1), true)]
           )
 
-          expect(subject.count).to eq(0)
+          expect(subject.count(student, classroom, start_date, end_date, discipline)).to eq(0)
         end
       end
     end
@@ -90,11 +96,11 @@ RSpec.describe AbsenceCountService, type: :service do
   def create_daily_frequency(period, discipline = nil, class_number = nil)
     create(
       :daily_frequency,
-      frequency_date: "04/01/#{school_calendar.year}",
+      frequency_date: "04/01/#{classroom.year}",
       classroom: classroom,
       discipline: discipline,
       class_number: class_number,
-      school_calendar: school_calendar,
+      school_calendar: classroom.calendar.school_calendar,
       period: period
     )
   end

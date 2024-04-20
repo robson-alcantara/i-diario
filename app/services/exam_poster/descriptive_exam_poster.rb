@@ -99,17 +99,20 @@ module ExamPoster
         next unless can_post?(classroom)
 
         exams = DescriptiveExamStudent.joins(:descriptive_exam)
+                                      .joins(:student)
                                       .includes(:student, :descriptive_exam)
+                                      .by_classroom_and_discipline(classroom, nil)
                                       .merge(
-                                        DescriptiveExam.by_classroom_id(classroom.id)
-                                                       .by_step_id(classroom, get_step(classroom).id)
+                                        DescriptiveExam.by_step_id(classroom, get_step(classroom).id)
                                       )
                                       .ordered
 
         exams.each do |exam|
+          next if exam.student.nil?
+          next unless not_posted?({ classroom: classroom, student: exam.student })[:descriptive_exam]
           next unless valid_opinion_type?(
             exam.student.uses_differentiated_exam_rule,
-            OpinionTypes::BY_STEP, classroom.exam_rule
+            OpinionTypes::BY_STEP, classroom.first_exam_rule
           )
 
           descriptive_exams[classroom.api_code][exam.student.api_code]['valor'] = exam.value
@@ -122,15 +125,18 @@ module ExamPoster
     def post_by_year
       descriptive_exams = Hash.new { |hash, key| hash[key] = Hash.new(&hash.default_proc) }
 
-      teacher.classrooms.uniq.each do |classroom|
+      classrooms.each do |classroom|
         next unless can_post?(classroom)
 
-        exams = DescriptiveExamStudent.by_classroom(classroom).ordered
+        exams = DescriptiveExamStudent.by_classroom_and_discipline(classroom, nil)
+                                      .ordered
 
         exams.each do |exam|
+          next if exam.student.nil?
+          next unless not_posted?({ classroom: classroom, student: exam.student })[:descriptive_exam]
           next unless valid_opinion_type?(
             exam.student.uses_differentiated_exam_rule,
-            OpinionTypes::BY_YEAR, classroom.exam_rule
+            OpinionTypes::BY_YEAR, classroom.first_exam_rule
           )
 
           descriptive_exams[classroom.api_code][exam.student.api_code]['valor'] = exam.value
@@ -154,13 +160,14 @@ module ExamPoster
 
         next if exempted_discipline_ids.include?(discipline.id)
 
-        exams = DescriptiveExamStudent.by_classroom_and_discipline(classroom, discipline).ordered
-
+        exams = DescriptiveExamStudent.joins(:student).by_classroom_and_discipline(classroom, discipline).ordered
         exams.each do |exam|
+          next if exam.student.nil?
+          next unless not_posted?({ classroom: classroom, discipline: discipline, student: exam.student })[:descriptive_exam]
           next unless valid_opinion_type?(
-            exam.student.uses_differentiated_exam_rule,
+            exam.student.try(:uses_differentiated_exam_rule),
             OpinionTypes::BY_YEAR_AND_DISCIPLINE,
-            classroom.exam_rule
+            classroom.first_exam_rule
           )
 
           descriptive_exams[classroom.api_code][exam.student.api_code][discipline.api_code]['valor'] = exam.value
@@ -194,10 +201,12 @@ module ExamPoster
                                       .ordered
 
         exams.each do |exam|
+          next if exam.student.nil?
+          next unless not_posted?({ classroom: classroom, discipline: discipline, student: exam.student })[:descriptive_exam]
           next unless valid_opinion_type?(
-            exam.student.uses_differentiated_exam_rule,
+            exam.student.try(:uses_differentiated_exam_rule),
             OpinionTypes::BY_STEP_AND_DISCIPLINE,
-            classroom.exam_rule
+            classroom.first_exam_rule
           )
 
           descriptive_exams[classroom.api_code][exam.student.api_code][discipline.api_code]['valor'] = exam.value

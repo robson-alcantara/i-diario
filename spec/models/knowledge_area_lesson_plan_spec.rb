@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe KnowledgeAreaLessonPlan, type: :model do
-  subject { FactoryGirl.build(:knowledge_area_lesson_plan) }
+  subject { create(:knowledge_area_lesson_plan, :with_teacher_discipline_classroom) }
 
   describe 'associations' do
     it { expect(subject).to belong_to(:lesson_plan) }
@@ -13,29 +13,24 @@ RSpec.describe KnowledgeAreaLessonPlan, type: :model do
     it { expect(subject).to validate_presence_of(:lesson_plan) }
 
     it 'should allow more than one knowledge area lesson plan in the same date' do
-      knowledge_area = FactoryGirl.create(:knowledge_area)
-      another_lesson_plan = FactoryGirl.create(
-        :lesson_plan,
-        start_at: '30/06/2020',
-        end_at: '07/07/2020'
-      )
-      another_knowledge_area_lesson_plan = FactoryGirl.create(
+      discipline = create(:discipline)
+      knowledge_area_lesson_plan = create(
         :knowledge_area_lesson_plan,
-        knowledge_area_ids: knowledge_area.id,
-        lesson_plan: another_lesson_plan
+        :with_teacher_discipline_classroom,
+        knowledge_area_ids: discipline.knowledge_area.id
       )
 
-      lesson_plan = FactoryGirl.create(
+      lesson_plan = create(
         :lesson_plan,
-        school_calendar: another_lesson_plan.school_calendar,
-        classroom: another_lesson_plan.classroom,
-        start_at: '06/07/2020',
-        end_at: '30/07/2020'
+        :with_teacher_discipline_classroom,
+        classroom: knowledge_area_lesson_plan.lesson_plan.classroom,
+        discipline: discipline
       )
-      subject = FactoryGirl.build(
+      subject = build(
         :knowledge_area_lesson_plan,
-        knowledge_area_ids: knowledge_area.id,
-        lesson_plan: lesson_plan
+        knowledge_area_ids: discipline.knowledge_area.id,
+        lesson_plan: lesson_plan,
+        teacher_id: lesson_plan.teacher_id
       )
 
       expect(subject).to be_valid

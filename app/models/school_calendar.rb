@@ -1,4 +1,4 @@
-class SchoolCalendar < ActiveRecord::Base
+class SchoolCalendar < ApplicationRecord
   acts_as_copy_target
 
   before_validation :self_assign_to_steps
@@ -15,6 +15,12 @@ class SchoolCalendar < ActiveRecord::Base
   has_many :steps, -> { includes(:school_calendar).ordered }, class_name: 'SchoolCalendarStep', dependent: :destroy
   has_many :classrooms, class_name: 'SchoolCalendarClassroom', dependent: :destroy
   has_many :events, class_name: 'SchoolCalendarEvent', dependent: :destroy
+  has_many :absence_justifications, dependent: :restrict_with_exception
+  has_many :avaliations, dependent: :restrict_with_exception
+  has_many :daily_frequencies, dependent: :restrict_with_exception
+  has_many :final_recovery_diary_records, dependent: :restrict_with_exception
+  has_many :lesson_plans, dependent: :restrict_with_exception
+  has_many :observation_diary_records, dependent: :restrict_with_exception
 
   accepts_nested_attributes_for :steps, reject_if: :all_blank, allow_destroy: true
   accepts_nested_attributes_for :classrooms, reject_if: :all_blank, allow_destroy: true
@@ -32,14 +38,23 @@ class SchoolCalendar < ActiveRecord::Base
   scope :by_unity_id, lambda { |unity_id| where(unity_id: unity_id) }
   scope :by_unity_api_code, lambda { |unity_api_code| joins(:unity).where(unities: { api_code: unity_api_code }) }
   scope :by_school_day, lambda { |date| by_school_day(date) }
+  scope :only_opened_years, -> { where(opened_year: true) }
   scope :ordered, -> { joins(:unity).order(year: :desc).order('unities.name') }
 
   def to_s
     "#{year}"
   end
 
+  def school_day_checker(date, grade_id = nil, classroom_id = nil, discipline_id = nil)
+    SchoolDayChecker.new(self, date, grade_id, classroom_id, discipline_id)
+  end
+
   def school_day?(date, grade_id = nil, classroom_id = nil, discipline_id = nil)
-    SchoolDayChecker.new(self, date, grade_id, classroom_id, discipline_id).school_day?
+    school_day_checker(date, grade_id, classroom_id, discipline_id).school_day?
+  end
+
+  def day_allows_entry?(date, grade_id = nil, classroom_id = nil, discipline_id = nil)
+    school_day_checker(date, grade_id, classroom_id, discipline_id).day_allows_entry?
   end
 
   def step(date)
@@ -54,9 +69,13 @@ class SchoolCalendar < ActiveRecord::Base
     steps.all.posting_date_after_and_before(date).first
   end
 
-  def school_term_day?(school_term, date)
-    real_school_term = SchoolTermConverter.convert(step(date))
-    real_school_term.to_sym == school_term.to_sym
+  def school_term_day?(school_term_type_step, date, classroom = nil)
+    step = classroom.present? ? StepsFetcher.new(classroom).step_by_date(date) : step(date)
+
+    return if step.blank?
+    return if step.school_calendar_parent.steps.count != school_term_type_step.school_term_type.steps_number
+
+    step.step_number == school_term_type_step.step_number
   end
 
   def first_day

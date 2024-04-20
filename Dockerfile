@@ -1,13 +1,22 @@
-FROM ruby:2.2.6
+FROM ruby:2.4.10-slim-buster
 
 RUN apt-get update -qq
-RUN apt-get install -y build-essential libpq-dev nodejs npm nodejs-legacy
-RUN npm install -g phantomjs-prebuilt
+RUN apt-get install -y \
+    build-essential \
+    libpq-dev nodejs \
+    npm \
+    git \
+    shared-mime-info
+RUN npm i -g yarn
 
 ENV app /app
+
 RUN mkdir $app
+
 WORKDIR $app
 
-ENV BUNDLE_PATH /box
+RUN gem install bundler:1.17.3
 
-ADD . $app
+COPY Gemfile Gemfile.lock /app/
+
+ENV BUNDLE_PATH /box

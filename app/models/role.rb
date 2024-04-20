@@ -11,9 +11,7 @@ class Role < ActiveRecord::Base
 
   has_many :permissions, class_name: "RolePermission", dependent: :destroy
   has_many :user_roles, dependent: :restrict_with_error
-  has_many :student_default_roles, class_name: 'GeneralConfiguration', foreign_key: 'students_default_role_id'
   has_many :employees_default_roles, class_name: 'GeneralConfiguration', foreign_key: 'employees_default_role_id'
-  has_many :parents_default_roles, class_name: 'GeneralConfiguration', foreign_key: 'parents_default_role_id'
 
   accepts_nested_attributes_for :permissions
   accepts_nested_attributes_for :user_roles, reject_if: :all_blank, allow_destroy: true
@@ -26,6 +24,8 @@ class Role < ActiveRecord::Base
   validate :permissions_must_match_access_level
 
   scope :ordered, -> { order(arel_table[:name].asc) }
+  scope :exclude_administrator_roles, -> { where.not(access_level: AccessLevel::ADMINISTRATOR) }
+  scope :exclude_administrator_portabilis, -> { where.not(name: 'Administrador Portabilis') }
 
   def build_permissions!
     Features.list.each do |feature|
@@ -63,18 +63,35 @@ class Role < ActiveRecord::Base
   end
 
   def remove_not_unique_user_unity
-    return unless user_roles
+    return if user_roles.blank?
 
-    user_unity = []
+    duplicated_user_roles = user_roles.group(:user_id, :unity_id)
+                                      .having('COUNT(1) > 1')
+                                      .select(:user_id, :unity_id, 'COUNT(1) AS count')
+
+    return if duplicated_user_roles.blank?
+
+    adjusted_user_roles = []
 
     user_roles.each do |user_role|
       next if user_role.marked_for_destruction?
 
-      if user_unity.include?([user_role.user_id, user_role.unity_id])
-        user_role.mark_for_destruction
-      else
-        user_unity.push([user_role.user_id, user_role.unity_id])
-      end
+      current_duplicated_user_roles = duplicated_user_roles.find_by(
+        user_id: user_role.user_id,
+        unity_id: user_role.unity_id
+      )
+
+      next if current_duplicated_user_roles.blank?
+
+      adjusted_user_roles_count = adjusted_user_roles.count { |user_id, unity_id|
+        user_id == user_role.user_id && unity_id == user_role.unity_id
+      }
+
+      next if adjusted_user_roles_count == (current_duplicated_user_roles.count - 1)
+      next if User.find(user_role.user_id).current_user_role_id == user_role.id
+
+      user_role.mark_for_destruction
+      adjusted_user_roles << [user_role.user_id, user_role.unity_id]
     end
   end
 end

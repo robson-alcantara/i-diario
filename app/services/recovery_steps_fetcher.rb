@@ -8,9 +8,9 @@ class RecoveryStepsFetcher
     steps = []
 
     if recovery_exam_rule.present?
-      steps = @step.school_calendar.steps.select do |step|
+      steps = steps_fetcher.steps.select { |step|
         recovery_exam_rule.steps.include?(step.to_number)
-      end
+      }
     end
 
     steps << @step if steps.empty?
@@ -20,12 +20,16 @@ class RecoveryStepsFetcher
 
   private
 
+  def steps_fetcher
+    @steps_fetcher ||= StepsFetcher.new(@classroom)
+  end
+
   def recovery_type
-    @classroom.exam_rule.recovery_type
+    @classroom.first_exam_rule_with_recovery.recovery_type
   end
 
   def recovery_exam_rule
-    @classroom.exam_rule.recovery_exam_rules.find do |recovery_diary_record|
+    @classroom.first_exam_rule_with_recovery.recovery_exam_rules.find do |recovery_diary_record|
       recovery_diary_record.steps.last.eql?(@step.to_number)
     end
   end

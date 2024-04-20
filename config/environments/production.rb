@@ -20,7 +20,7 @@ Rails.application.configure do
   # config.action_dispatch.rack_cache = true
 
   # Disable Rails's static asset server (Apache or nginx will already do this).
-  config.serve_static_files = true
+  config.public_file_server.enabled = true
 
   # Compress JavaScripts and CSS.
   config.assets.js_compressor = Uglifier.new(harmony: true)
@@ -51,7 +51,23 @@ Rails.application.configure do
   # config.logger = ActiveSupport::TaggedLogging.new(SyslogLogger.new)
 
   # Use a different cache store in production.
-  config.cache_store = :dalli_store
+  config.cache_store = :dalli_store, Rails.application.secrets[:cache_store_url]
+
+  if (Rails.application.secrets[:REDIS_MODE] == 'sentinel')
+    config.cache_store = :redis_store, {
+      url: "#{Rails.application.secrets[:REDIS_URL]}#{Rails.application.secrets[:REDIS_DB_CACHE]}",
+      role: "master",
+      sentinels: Rails.application.secrets[:REDIS_SENTINELS].split(";").map { |host| { host: host,  port: 26379 }},
+      namespace: "cache",
+      expires_in: 1.days
+    }
+  else
+    config.cache_store = :redis_store, {
+      url: "#{Rails.application.secrets[:REDIS_URL]}#{Rails.application.secrets[:REDIS_DB_CACHE]}",
+      namespace: "cache",
+      expires_in: 1.days
+    }
+  end
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.action_controller.asset_host = "http://assets.example.com"
@@ -79,4 +95,10 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
+
+  # Set other trusted IPs, so they are not being considered as the client IP
+  # See the default in actionpack/lib/action_dispatch/middleware/remote_ip.rb
+  config.action_dispatch.trusted_proxies = (
+    Rails.application.secrets[:trusted_proxies]&.split || []
+  ).map { |proxy| IPAddr.new(proxy) }
 end

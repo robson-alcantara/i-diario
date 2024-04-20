@@ -27,7 +27,7 @@ class KnowledgeAreaTeachingPlanPdf < BaseReport
 
   def header
     header_cell = make_cell(
-      content: 'Planos de ensino por área de conhecimento',
+      content: Translator.t('navigation.knowledge_area_teaching_plans'),
       size: 12,
       font_style: :bold,
       background_color: 'DEDEDE',
@@ -95,7 +95,7 @@ class KnowledgeAreaTeachingPlanPdf < BaseReport
     )
 
     @class_plan_header_cell = make_cell(
-      content: 'Plano de ensino',
+      content: Translator.t('navigation.teaching_plans_menu'),
       size: 12,
       font_style: :bold,
       background_color: 'DEDEDE',
@@ -131,7 +131,7 @@ class KnowledgeAreaTeachingPlanPdf < BaseReport
     @year_cell = make_cell(content: teaching_plan.year.to_s, size: 10, borders: [:bottom, :left, :right], padding: [0, 2, 4, 4], colspan: 2)
 
     @period_header = make_cell(content: 'Período escolar', size: 8, font_style: :bold, borders: [:left, :right, :top], padding: [2, 2, 4, 4], colspan: 2)
-    @period_cell = make_cell(content: (teaching_plan.school_term_type == SchoolTermTypes::YEARLY ? teaching_plan.school_term_type_humanize : teaching_plan.school_term_humanize), size: 10, borders: [:bottom, :left, :right], padding: [0, 2, 4, 4], colspan: 2)
+    @period_cell = make_cell(content: (teaching_plan.yearly? ? teaching_plan.school_term_type.to_s : teaching_plan.school_term_type_step_humanize), size: 10, borders: [:bottom, :left, :right], padding: [0, 2, 4, 4], colspan: 2)
   end
 
   def general_information
@@ -169,17 +169,32 @@ class KnowledgeAreaTeachingPlanPdf < BaseReport
       column(-1).border_right_width = 0.25
     end
 
-    objectives = teaching_plan.objectives || '-'
-    content = teaching_plan.present? ? teaching_plan.contents_ordered.map(&:to_s).join(', ') : '-'
+    experience_fields = @knowledge_area_teaching_plan.experience_fields.presence
+    content = teaching_plan.present? ? teaching_plan.contents_ordered.map(&:to_s).join("\n ") : '-'
+    objectives = teaching_plan.objectives.present? ? teaching_plan.objectives_ordered.map(&:to_s).join("\n ") : '-'
     methodology = teaching_plan.methodology || '-'
     evaluation = teaching_plan.evaluation || '-'
     references = teaching_plan.references || '-'
 
-    text_box_truncate('Objetivos', objectives)
-    text_box_truncate('Conteúdos', content)
-    text_box_truncate('Metodologia', methodology)
-    text_box_truncate('Avaliação', evaluation)
-    text_box_truncate('Referências', references)
+    experience_fields_label = Translator.t('activerecord.attributes.knowledge_area_teaching_plan.experience_fields')
+    contents_label = Translator.t('activerecord.attributes.knowledge_area_teaching_plan.contents')
+    objectives_label = Translator.t('activerecord.attributes.discipline_teaching_plan.objectives')
+
+    methodology_label_translation = Translation.find_by(key: 'navigation.methodology_by_knowledge_area', group: 'teaching_plans').translation
+    methodology_label = methodology_label_translation.present? ? methodology_label_translation : 'Metodologia'
+
+    evaluation_label_translation = Translation.find_by(key: 'navigation.avaliation_by_knowledge_area', group: 'teaching_plans').translation
+    evaluation_label = evaluation_label_translation.present? ? evaluation_label_translation : 'Avaliação'
+
+    references_label_translation = Translation.find_by(key: 'navigation.references_by_knowledge_area', group: 'teaching_plans').translation
+    references_label = references_label_translation.present? ? references_label_translation : 'Referências'
+
+    text_box_truncate(experience_fields_label, experience_fields) if experience_fields
+    text_box_truncate(contents_label, content)
+    text_box_truncate(objectives_label, objectives)
+    text_box_truncate(methodology_label, methodology)
+    text_box_truncate(evaluation_label, evaluation)
+    text_box_truncate(references_label, references)
   end
 
   def teaching_plan

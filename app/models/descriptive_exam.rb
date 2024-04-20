@@ -1,4 +1,4 @@
-class DescriptiveExam < ActiveRecord::Base
+class DescriptiveExam < ApplicationRecord
   include Audit
   include Stepable
   include TeacherRelationable
@@ -21,9 +21,17 @@ class DescriptiveExam < ActiveRecord::Base
 
   delegate :unity, to: :classroom, allow_nil: true
 
+  scope :by_teacher_id,
+        lambda { |teacher_id|
+          joins(discipline: :teacher_discipline_classrooms)
+            .where(teacher_discipline_classrooms: { teacher_id: teacher_id })
+            .distinct
+        }
+
   scope :by_unity_id, ->(unity_id) { joins(:classroom).where(classrooms: { unity_id: unity_id }) }
   scope :by_classroom_id, ->(classroom_id) { where(classroom_id: classroom_id) }
   scope :by_discipline_id, ->(discipline_id) { where(discipline_id: discipline_id) }
+  scope :by_step_number, ->(step_number) { where(step_number: step_number) }
 
   validates :unity, presence: true
   validates :opinion_type, presence: true
@@ -52,7 +60,7 @@ class DescriptiveExam < ActiveRecord::Base
     return if classroom.blank? || step.blank?
     return if [OpinionTypes::BY_YEAR_AND_DISCIPLINE, OpinionTypes::BY_YEAR].include?(opinion_type)
 
-    return true if PostingDateChecker.new(classroom, step.start_at).check
+    return true if PostingDateChecker.new(classroom, step.start_date_for_posting).check
 
     errors.add(:step_id, I18n.t('errors.messages.not_allowed_to_post_in_date'))
   end

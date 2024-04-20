@@ -9,7 +9,11 @@ class BaseReport
   GAP = 8.freeze
 
   def initialize(page_layout = :portrait)
-    @display_header_on_all_reports_pages = GeneralConfiguration.current.display_header_on_all_reports_pages
+    current_configuration = GeneralConfiguration.current
+    @display_header_on_all_reports_pages = current_configuration.display_header_on_all_reports_pages
+    @display_daily_activies_log = current_configuration.display_daily_activies_log
+    @show_daily_activities_in_knowledge_area_content_record_report =
+      current_configuration.show_daily_activities_in_knowledge_area_content_record_report
 
     @document = Prawn::Document.new(
       page_size: 'A4',
@@ -88,22 +92,71 @@ class BaseReport
     draw_text(title, size: 8, style: :bold, at: [5, cursor - 10])
 
     begin
-      text_height = height_of(information, width: bounds.width - 10, size: 10) + 30
+      if information.class.eql?(Array)
+        text_formatted = []
+
+        information.each do |text|
+          if text[:styles].include?(:bold)
+            text[:text] = "<b>#{text[:text]}</b>"
+          end
+          if text[:styles].include?(:italic)
+            text[:text] = "<i>#{text[:text]}</i>"
+          end
+          if text[:styles].include?(:underline)
+            text[:text]= "<u>#{text[:text]}</u>"
+          end
+
+          text_formatted << text[:text]
+        end
+
+        information = text_formatted.join(" ")
+      end
+
+      text_height = height_of(information, width: bounds.width - 10, size: 10) + 180
       box_height = (text_height > cursor ? cursor : text_height)
 
       bounding_box([0, cursor], width: bounds.width, height: box_height - 5) do
         line_width 0.5
         stroke_bounds
         information = text_box(
-          information,
+          information.gsub("</p>", "</p><br>"),
           width: bounds.width - 10,
           overflow: :truncate,
           size: 10,
-          at: [5, box_height - 20]
+          at: [5, box_height - 20],
+          inline_format: true
         )
       end
 
       start_new_page if information.present?
+    end while information.present?
+  end
+
+  def text_box_overflow_to_new_page(information, size, at, width, height)
+    begin
+      if information.class.eql?(Array)
+        text_formatted = []
+
+        text_formatted << information.map { |text| text[:text] }
+
+        information = text_formatted.join(" ")
+      end
+
+      information = text_box(
+        information,
+        size: size,
+        at: at,
+        width: width,
+        height: height,
+        overflow: :truncate,
+        inline_format: true
+      )
+
+      if information.present?
+        start_new_page
+        at = nil
+        height = bounds.height
+      end
     end while information.present?
   end
 end

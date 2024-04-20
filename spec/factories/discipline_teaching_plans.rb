@@ -3,12 +3,10 @@ FactoryGirl.define do
     teaching_plan
     discipline
 
-    after(:build) do |discipline_teaching_plan|
-      create(
-        :teacher_discipline_classroom,
-        discipline: discipline_teaching_plan.discipline,
-        teacher: discipline_teaching_plan.teaching_plan.teacher
-      )
+    thematic_unit { Faker::Lorem.sentence }
+
+    trait :with_teacher_discipline_classroom do
+      teaching_plan { build(:teaching_plan, :with_teacher_discipline_classroom, discipline: discipline) }
     end
   end
 end

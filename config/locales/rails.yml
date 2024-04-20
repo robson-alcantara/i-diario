@@ -1,11 +1,19 @@
 pt-BR:
   errors:
     general:
+      error: "Ops! Ocorreu um erro. Tente recarregar a página e, se o problema persistir, entre em contato com a gestão da sua Escola ou a Secretaria de Educação do seu município para que o problema seja reportado ao Suporte."
+      require_current_year: 'É necessário vincular um ano ao perfil atual para acessar esse cadastro'
+      require_current_classroom: "É necessário vincular uma turma ao perfil atual para acessar esse cadastro"
       require_current_teacher: "É necessário vincular um professor ao usuário atual para acessar esse cadastro"
       require_current_teacher_discipline_classrooms: "É necessário ter turmas vinculadas ao professor atual para acessar esta funcionalidade"
-      require_current_test_setting: "É necessário o cadastro de uma configuração de avaliação no ano atual para acessar esse cadastro"
       school_calendar_steps_more_than_limit: "Verificamos que o calendário letivo da escola: %{unity}, possui uma quantidade de etapas acima do permitido."
       calendar_step_not_found: "Não foi localizada uma etapa para a data %{date}."
+      not_allowed_to_modify_prev_years: "Não é permitido lançar ou modificar os dados de anos letivos em que o período das etapas já se encerraram. Para efetuar lançamentos o responsável deve atualizar a data final em Calendário letivo."
+      check_user_has_name: 'Atualize os dados do seu perfil para continuar a utilizar o sistema.'
+      expired_password: 'Sua senha expirou, altere-a para continuar usando o sistema. Sua senha deve conter uma combinação de letras maiúsculas e minúsculas, números e símbolos (!@#$%*).'
+      weak_password: 'Sua senha deve conter uma combinação de letras maiúsculas e minúsculas, números e símbolos (!@#$%*)'
+    messages:
+      extension_white_list_error: Tipo de arquivo não suportado
   ieducar_api:
     error:
       messages:
@@ -13,6 +21,8 @@ pt-BR:
         invalid_post: "Requisição não pode ser realizada. É necessário informar o %{field}."
         post_error: "Ocorreu um erro ao efetuar o envio. Entre em contato com o administrador."
         sync_error: "Erro inesperado. Se persistir, entre em contato com o administrador."
+        must_not_have_conflicting_steps: "A data informada não pode ser um dia letivo em outro calendário escolar"
+        must_be_less_than_end_at: "não pode ser maior ou igual a data final"
 
   boolean:
     "yes": "Sim"
@@ -26,6 +36,7 @@ pt-BR:
       long: ! "%d de %B de %Y"
       short: ! "%d de %B"
       week_day: ! "%A, %d de %B"
+      short_two: ! "%d de %b"
 
     abbr_day_names:
     - "Dom"
@@ -272,6 +283,7 @@ pt-BR:
       short: ! "%d de %B, %H:%M"
       compressed: ! "%d/%m/%Y - %H:%M"
       input: ! "%d/%m/%Y %H:%M"
+      just_time: ! "%H:%M"
 
   helpers:
     remove: "Remover"

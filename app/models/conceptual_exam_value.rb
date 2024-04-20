@@ -16,6 +16,7 @@ class ConceptualExamValue < ActiveRecord::Base
 
   scope :by_discipline_id, lambda { |discipline_id| where(discipline_id: discipline_id) }
   scope :by_conceptual_exam_id, lambda { |conceptual_exam_id| where(conceptual_exam_id: conceptual_exam_id) }
+  scope :by_not_poster, ->(poster_sent) { where("conceptual_exam_values.updated_at > ?", poster_sent) }
 
   def self.active(join_conceptual_exam = true)
     scoped = if join_conceptual_exam
@@ -56,23 +57,25 @@ class ConceptualExamValue < ActiveRecord::Base
           and(TeacherDisciplineClassroom.arel_table[:discipline_id].eq(arel_table[:discipline_id]))).join_sources,
       arel_table.join(Classroom.arel_table).
         on(Classroom.arel_table[:id].eq(ConceptualExam.arel_table[:classroom_id])).join_sources,
+      arel_table.join(ClassroomsGrade.arel_table).
+        on(ClassroomsGrade.arel_table[:classroom_id].eq(ConceptualExam.arel_table[:classroom_id])).join_sources,
       arel_table.join(ExamRule.arel_table).
-        on(ExamRule.arel_table[:id].eq(Classroom.arel_table[:exam_rule_id])).join_sources,
+        on(ExamRule.arel_table[:id].eq(ClassroomsGrade.arel_table[:exam_rule_id])).join_sources,
       arel_table.join(differentiated_exam_rule_students, Arel::Nodes::OuterJoin).
         on(differentiated_exam_rule_students[:id].eq(ConceptualExam.arel_table[:student_id]).
           and(differentiated_exam_rule_students[:uses_differentiated_exam_rule].eq(true))).join_sources,
       arel_table.join(differentiated_exam_rules, Arel::Nodes::OuterJoin).
         on(differentiated_exam_rules[:id].eq(ExamRule.arel_table[:differentiated_exam_rule_id])).join_sources
     ).where(
-      ExamRule.arel_table[:score_type].eq(Discipline::SCORE_TYPE_FILTERS[:concept][:score_type_target]).
+      ExamRule.arel_table[:score_type].eq(ScoreTypes::CONCEPT).
         or(
-          ExamRule.arel_table[:score_type].eq(Discipline::SCORE_TYPE_FILTERS[:concept][:score_type_numeric_and_concept]).
-          and(TeacherDisciplineClassroom.arel_table[:score_type].eq(Discipline::SCORE_TYPE_FILTERS[:concept][:discipline_score_type_target]))
+          ExamRule.arel_table[:score_type].eq(ScoreTypes::NUMERIC_AND_CONCEPT).
+          and(TeacherDisciplineClassroom.arel_table[:score_type].eq(ScoreTypes::CONCEPT))
         ).or(
-          differentiated_exam_rules[:score_type].eq(Discipline::SCORE_TYPE_FILTERS[:concept][:score_type_target]).
+          differentiated_exam_rules[:score_type].eq(ScoreTypes::CONCEPT).
           and(differentiated_exam_rule_students[:id].not_eq(nil))
         )
-      ).uniq
+      ).distinct
   end
 
   def valid_for_destruction?

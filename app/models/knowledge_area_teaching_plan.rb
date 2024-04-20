@@ -1,6 +1,7 @@
-class KnowledgeAreaTeachingPlan < ActiveRecord::Base
+class KnowledgeAreaTeachingPlan < ApplicationRecord
   include Audit
   include TeacherRelationable
+  include Translatable
 
   teacher_relation_columns only: :knowledge_areas
 
@@ -14,17 +15,18 @@ class KnowledgeAreaTeachingPlan < ActiveRecord::Base
   has_many :knowledge_areas, through: :knowledge_area_teaching_plan_knowledge_areas
 
   delegate :contents, to: :teaching_plan
+  delegate :objectives, to: :teaching_plan
 
   accepts_nested_attributes_for :teaching_plan
 
   scope :by_year, ->(year) { joins(:teaching_plan).where(teaching_plans: { year: year }) }
   scope :by_unity, ->(unity) { joins(:teaching_plan).where(teaching_plans: { unity_id: unity }) }
   scope :by_grade, ->(grade) { joins(:teaching_plan).where(teaching_plans: { grade_id: grade }) }
-  scope :by_school_term_type, lambda { |school_term_type|
-    joins(:teaching_plan).where(teaching_plans: { school_term_type: school_term_type })
+  scope :by_school_term_type_id, lambda { |school_term_type_id|
+    joins(:teaching_plan).where(teaching_plans: { school_term_type_id: school_term_type_id })
   }
-  scope :by_school_term, lambda { |school_term|
-    joins(:teaching_plan).where(teaching_plans: { school_term: school_term })
+  scope :by_school_term_type_step_id, lambda { |school_term_type_step_id|
+    joins(:teaching_plan).where(teaching_plans: { school_term_type_step_id: school_term_type_step_id })
   }
   scope :by_knowledge_area, ->(knowledge_area) { by_knowledge_area(knowledge_area) }
   scope :by_teacher_id, ->(teacher_id) { joins(:teaching_plan).where(teaching_plans: { teacher_id: teacher_id }) }
@@ -39,11 +41,16 @@ class KnowledgeAreaTeachingPlan < ActiveRecord::Base
       joins(:teaching_plan).merge(TeachingPlan.where.not(teacher_id: current_teacher_id))
     end
   }
+  scope :order_by_school_term_type_step, lambda {
+    joins(:teaching_plan).order('teaching_plans.school_term_type_step_id IS NULL')
+  }
+
+  scope :order_by_grades, lambda {
+    joins(teaching_plan: :grade).order(Grade.arel_table[:description].desc)
+  }
 
   validates :teaching_plan, presence: true
   validates :knowledge_area_ids, presence: true
-
-  validate :uniqueness_of_knowledge_area_teaching_plan, if: :teaching_plan
 
   def optional_teacher
     true
@@ -91,7 +98,7 @@ class KnowledgeAreaTeachingPlan < ActiveRecord::Base
               .eq(teacher)
             .and(TeacherDisciplineClassroom.arel_table[:active]
               .eq('t')))
-      .uniq
+      .distinct
   end
 
   def self.by_knowledge_area(knowledge_area)
@@ -101,20 +108,5 @@ class KnowledgeAreaTeachingPlan < ActiveRecord::Base
           knowledge_area_id: knowledge_area
         }
       )
-  end
-
-  def uniqueness_of_knowledge_area_teaching_plan
-    knowledge_area_teaching_plans = KnowledgeAreaTeachingPlan.by_year(teaching_plan.year)
-      .by_unity(teaching_plan.unity)
-      .by_teacher_id(teaching_plan.teacher_id)
-      .by_grade(teaching_plan.grade)
-      .by_school_term(teaching_plan.school_term)
-      .by_knowledge_area(knowledge_areas.collect(&:id))
-
-    knowledge_area_teaching_plans = knowledge_area_teaching_plans.where.not(id: id) if persisted?
-
-    if knowledge_area_teaching_plans.any?
-      errors.add(:base, :uniqueness_of_knowledge_area_teaching_plan)
-    end
   end
 end

@@ -32,6 +32,14 @@ class ApplicationPolicy
     update?
   end
 
+  def form?
+    update?
+  end
+
+  def save?
+    update?
+  end
+
   def edit_multiple?
     update?
   end
@@ -44,7 +52,7 @@ class ApplicationPolicy
     create?
   end
 
-  def update_multiple?
+  def create_or_update_multiple?
     update?
   end
 
@@ -68,6 +76,8 @@ class ApplicationPolicy
       record.model_name
     elsif record.class.respond_to?(:model_name)
       record.class.model_name
+    else
+      record
     end
 
     klass.to_s.underscore.pluralize
@@ -79,4 +89,3 @@ class ApplicationPolicy
     record.to_s.respond_to?(:underscore) && record.to_s.underscore.split('_').last.eql?('report')
   end
 end
-

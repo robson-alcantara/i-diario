@@ -1,6 +1,4 @@
 class PartialScoreRecordReportController < ApplicationController
-  before_action :require_current_test_setting
-
   def form
     @partial_score_record_report_form = PartialScoreRecordReportForm.new
     @partial_score_record_report_form.classroom_id = current_user.current_classroom_id
@@ -9,15 +7,19 @@ class PartialScoreRecordReportController < ApplicationController
 
   def report
     @partial_score_record_report_form = PartialScoreRecordReportForm.new(resource_params)
+    students_ids = resource_params[:students_ids].presence || students.pluck(:id)
+    @partial_score_record_report_form.students_ids = [students_ids].flatten
 
     if @partial_score_record_report_form.valid?
+      current_test_setting_step = current_test_setting_step(@partial_score_record_report_form.step)
       partial_score_record_report = PartialScoreRecordReport.build(current_entity_configuration,
                                                   current_school_calendar.year,
                                                   @partial_score_record_report_form.step,
-                                                  @partial_score_record_report_form.student,
+                                                  @partial_score_record_report_form.students,
                                                   @partial_score_record_report_form.unity,
                                                   @partial_score_record_report_form.classroom,
-                                                  current_test_setting)
+                                                  current_test_setting_step)
+
       send_pdf(t("routes.partial_score_record"), partial_score_record_report.render)
     else
       @partial_score_record_report_form.school_calendar_year = current_school_calendar.year
@@ -35,6 +37,8 @@ class PartialScoreRecordReportController < ApplicationController
                             current_school_calendar.last_day
                           )
                           .select(:student_id)
+    ).where(
+      id: student_ids_with_student_enrollments(classroom_id)
     ).ordered
 
     respond_with @students_by_daily_note if params['classroom_id'].present?
@@ -43,6 +47,16 @@ class PartialScoreRecordReportController < ApplicationController
   end
 
   private
+
+  def student_ids_with_student_enrollments(classroom_id)
+    student_enrollments_list = StudentEnrollmentsList.new(
+      classroom: classroom_id,
+      discipline: current_user.current_discipline_id,
+      search_type: :by_year
+    )
+
+    student_enrollments_list.student_enrollments.map(&:student_id)
+  end
 
   def school_calendar_steps
     @school_calendar_steps ||= SchoolCalendarStep.where(school_calendar: current_school_calendar)
@@ -73,7 +87,7 @@ class PartialScoreRecordReportController < ApplicationController
   def resource_params
     params.require(:partial_score_record_report_form).permit(:unity_id,
                                                             :classroom_id,
-                                                            :student_id,
+                                                            :students_ids,
                                                             :school_calendar_step_id,
                                                             :school_calendar_classroom_step_id)
   end

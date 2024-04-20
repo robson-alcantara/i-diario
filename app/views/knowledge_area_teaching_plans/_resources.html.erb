@@ -6,7 +6,20 @@
   <% else %>
     <% @knowledge_area_teaching_plans.each do |knowledge_area_teaching_plan| %>
       <tr>
-        <td><%= knowledge_area_teaching_plan.teaching_plan.unity %></td>
+        <td>
+          <% if knowledge_area_teaching_plan.teaching_plan.validated %>
+            <i class="fa fa-check-circle-o apply_tooltip_right"
+               data-original-title="Plano validado e aprovado"
+               style="color: #5A9F58"></i>
+          <% end %>
+          <%= knowledge_area_teaching_plan.teaching_plan.unity %>
+          <% if knowledge_area_teaching_plan.teaching_plan.attachments? %>
+            <i class="fa fa-paperclip apply_tooltip" data-original-title="Possui anexos"></i>
+          <% end %>
+          <% if knowledge_area_teaching_plan.teaching_plan.opinion.present? %>
+            <i class="fa fa-comment apply_tooltip" data-original-title="Possui parecer"></i>
+          <% end %>
+        </td>
         <td><%= knowledge_area_teaching_plan.teaching_plan.grade %></td>
         <td>
           <% knowledge_area_teaching_plan.knowledge_areas.each do |knowledge_area| %>
@@ -15,8 +28,9 @@
             </span>
           <% end %>
         </td>
-        <td><%= knowledge_area_teaching_plan.teaching_plan.school_term_type_humanize %></td>
-        <td><%= knowledge_area_teaching_plan.teaching_plan.school_term_humanize %></td>
+        <td><%=  knowledge_area_teaching_plan.experience_fields %></td>
+        <td><%= knowledge_area_teaching_plan.teaching_plan.school_term_type %></td>
+        <td><%= knowledge_area_teaching_plan.teaching_plan.school_term_type_step_humanize %></td>
         <td><%= knowledge_area_teaching_plan.teaching_plan.decorator.author(current_teacher) %></td>
         <td class="actions">
           <%= link_to(
@@ -30,6 +44,13 @@
                 class: 'btn btn-info apply_tooltip',
                 target: '_blank',
                 data: { original_title: t('views.index.tooltips.print') }) %>
+          <% if current_user.can_change?(:copy_knowledge_area_teaching_plan) %>
+            <%= link_to(
+                  t('helpers.links.copy_html'),
+                  copy_knowledge_area_teaching_plans_path(knowledge_area_teaching_plan),
+                  class: 'btn btn-info apply_tooltip',
+                  data: { original_title: t('views.index.tooltips.copy') }) %>
+          <% end %>
           <%= link_to(
                 t('helpers.links.edit_html'),
                 edit_knowledge_area_teaching_plan_path(knowledge_area_teaching_plan),
@@ -43,7 +64,7 @@
                   disabled: !teaching_plan_destroy?(knowledge_area_teaching_plan.teaching_plan),
                   method: 'delete',
                   data: {
-                    confirm: t('views.index.confirm'),
+                    confirm: t('views.index.confirm_deletion'),
                     original_title: t('views.index.tooltips.delete')
                   }
                 ) %>

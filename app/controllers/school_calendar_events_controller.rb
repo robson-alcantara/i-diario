@@ -24,6 +24,16 @@ class SchoolCalendarEventsController < ApplicationController
 
     authorize resource
 
+    if resource.valid?
+      SchoolCalendarEventDays.update_school_days(
+        [school_calendar],
+        [resource],
+        action_name,
+        resource.start_date,
+        resource.end_date
+      )
+    end
+
     if resource.save
       respond_with resource, location: school_calendar_school_calendar_events_path
     else
@@ -43,7 +53,21 @@ class SchoolCalendarEventsController < ApplicationController
 
     authorize resource
 
+    if (dates_changed = resource.start_date_changed? || resource.end_date_changed?)
+      old_start_date = resource.start_date_was
+      old_end_date = resource.end_date_was
+    end
+
     if resource.save
+      if dates_changed
+        SchoolCalendarEventDays.update_school_days(
+          [school_calendar],
+          [resource],
+          action_name,
+          old_start_date,
+          old_end_date
+        )
+      end
       respond_with resource, location: school_calendar_school_calendar_events_path
     else
       clear_invalid_dates
@@ -53,6 +77,10 @@ class SchoolCalendarEventsController < ApplicationController
 
   def destroy
     authorize resource
+
+    SchoolCalendarEventDays.update_school_days(
+      [school_calendar], [resource], action_name
+    )
 
     resource.destroy
 
@@ -87,7 +115,10 @@ class SchoolCalendarEventsController < ApplicationController
   helper_method :classrooms
 
   def disciplines
-    @disciplines ||= Discipline.by_unity_id(@school_calendar.unity.id).by_classroom(@school_calendar_event.classroom_id).ordered || []
+    @disciplines ||= Discipline.by_unity_id(@school_calendar.unity.id)
+                               .by_classroom(@school_calendar_event.classroom_id)
+                               .grouper
+                               .ordered || []
   end
   helper_method :disciplines
 
@@ -103,7 +134,7 @@ class SchoolCalendarEventsController < ApplicationController
   def resource_params
     params.require(:school_calendar_event).permit(
       :coverage, :course_id, :grade_id, :classroom_id, :discipline_id,
-      :description, :start_date, :end_date, :event_type, :periods, :legend
+      :description, :start_date, :end_date, :event_type, :periods, :legend, :show_in_frequency_record
     )
   end
 
@@ -127,13 +158,17 @@ class SchoolCalendarEventsController < ApplicationController
 
   def check_user_unity
     return if show_all_unities?
-    return if current_user_unity.try(:id) == school_calendar.unity_id
+    return if current_unity.try(:id) == school_calendar.unity_id
 
     redirect_to(school_calendars_path, alert: I18n.t('school_calendars.invalid_unity'))
   end
 
   def show_all_unities?
-    @show_all_unities ||= current_user.current_user_role.role_administrator?
+    @show_all_unities ||= current_user_role.try(:role_administrator?)
   end
   helper_method :show_all_unities?
+
+  def current_user_role
+    current_user.current_user_role || current_user.user_roles.first
+  end
 end

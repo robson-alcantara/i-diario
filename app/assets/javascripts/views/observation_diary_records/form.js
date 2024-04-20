@@ -4,10 +4,30 @@ $(function () {
   var flashMessages = new FlashMessages();
   var $classroom = $('#observation_diary_record_classroom_id');
   var $discipline = $('#observation_diary_record_discipline_id');
+  var $disciplineDiv = $("[data-discipline]");
   var $disciplineContainer = $('.observation_diary_record_discipline');
   var $date = $('#observation_diary_record_date');
   var $observationDiaryRecordNotesContainer = $('#observation-diary-record-notes');
+  var $observationDiaryRecordAttachmentsContainer = $('#observation-diary-record-attachments');
   var students = [];
+
+  function onChangeFileElement(){
+    if (this.files[0].size > 3145728) {
+      $(this).closest(".control-group").find('span').remove();
+      $(this).closest(".control-group").addClass("error");
+      $(this).after('<span class="help-inline">tamanho máximo por arquivo: 3 MB</span>');
+      $(this).val("");
+    }else {
+      $(this).closest(".control-group").removeClass("error");
+      $(this).closest(".control-group").find('span').remove();
+    }
+  }
+
+  $(".observation_diary_attachment").on('change', onChangeFileElement);
+
+  $('#observation_diary_records_form').on('cocoon:after-insert', function(e, item) {
+    $(item).find('input.file').on('change', onChangeFileElement);
+  });
 
   function loadStudentsSelect2() {
     var $studentsInputs = $('input[id$=student_ids]')
@@ -17,7 +37,6 @@ $(function () {
   function fetchDisciplines() {
     var classroom_id = $classroom.select2('val');
 
-    $discipline.select2('val', '');
     $discipline.select2({ data: [] });
 
     if (!_.isEmpty(classroom_id)) {
@@ -66,54 +85,30 @@ $(function () {
     flashMessages.error('Ocorreu um erro ao buscar os alunos da turma selecionada.');
   }
 
-  function fetchExamRule() {
-    $disciplineContainer.hide();
-    var classroom_id = $classroom.select2('val');
-
-    if (!_.isEmpty(classroom_id)) {
-      $.ajax({
-        url: Routes.exam_rules_pt_br_path({ classroom_id: classroom_id, format: 'json' }),
-        success: handleFetchExamRuleSuccess,
-        error: handleFetchExamRuleError
-      });
-    }
-  };
-
-  function handleFetchExamRuleSuccess(data) {
-    var examRule = data.exam_rule
-    if (!$.isEmptyObject(examRule) && (examRule.frequency_type == '2' || examRule.allow_frequency_by_discipline)) {
-      $disciplineContainer.show();
-    } else {
-      $disciplineContainer.hide();
-      $discipline.select2('val', '');
-    }
-  };
-
-  function handleFetchExamRuleError() {
-    flashMessages.error('Ocorreu um erro ao buscar a regra de avaliação da turma selecionada.');
-  };
-
   // On change
 
   $classroom.on('change', function() {
     fetchDisciplines();
     fetchStudents();
-    fetchExamRule();
   });
 
-  $date.on('change', function() {
+  $date.on('valid-date', function() {
     fetchStudents();
   });
 
   // On after add note
-
   $observationDiaryRecordNotesContainer.on('cocoon:after-insert', function(e, item) {
     // Workaround to correctly load students select2
     setTimeout(loadStudentsSelect2, 50);
   });
 
-  // On load
+  //On after add attachment
+  $observationDiaryRecordAttachmentsContainer.on('cocoon:after-insert', function(e, item) {
+    // Workaround to correctly load students select2
+    setTimeout(loadStudentsSelect2, 50);
+  });
 
-  fetchExamRule();
+  // On load
+  fetchDisciplines();
   fetchStudents();
 });

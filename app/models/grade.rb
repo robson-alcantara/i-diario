@@ -1,12 +1,21 @@
 class Grade < ActiveRecord::Base
+  include Discardable
+
   acts_as_copy_target
 
   audited
 
   belongs_to :course
-  has_many :classrooms
+  has_many :classrooms_grades
+  has_many :classrooms, through: :classrooms_grades
+  has_many :unity_discipline_grades
+  has_many :disciplines, through: :unity_discipline_grades
+  has_many :mvw_infrequency_tracking_classrooms
+  has_many :teacher_discipline_classrooms, dependent: :destroy
 
   has_and_belongs_to_many :custom_rounding_tables
+
+  default_scope -> { kept }
 
   scope :by_unity, lambda { |unity| by_unity(unity) }
   scope :by_course, lambda { |course_id| where(course_id: course_id) }
@@ -18,7 +27,7 @@ class Grade < ActiveRecord::Base
   validates :api_code, uniqueness: true
 
   def self.by_unity(unity)
-    joins(:classrooms).where(classrooms: { unity_id: unity }).uniq
+    joins(:classrooms).where(classrooms: { unity_id: unity }).distinct
   end
 
   def self.by_teacher(teacher)
@@ -28,7 +37,7 @@ class Grade < ActiveRecord::Base
           .join_sources
       )
       .where(TeacherDisciplineClassroom.arel_table[:teacher_id].eq(teacher))
-      .uniq
+      .distinct
   end
 
   def self.by_year(year)
@@ -37,5 +46,15 @@ class Grade < ActiveRecord::Base
 
   def to_s
     description
+  end
+
+  def self.to_select
+    ordered.includes(:course).map do |grade|
+      OpenStruct.new(
+        id: grade.id,
+        name: "#{grade.description} - #{grade.course.description}",
+        text: "#{grade.description} - #{grade.course.description}"
+      )
+    end
   end
 end

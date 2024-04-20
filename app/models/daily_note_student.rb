@@ -1,9 +1,11 @@
-class DailyNoteStudent < ActiveRecord::Base
+class DailyNoteStudent < ApplicationRecord
+  include Discardable
+
   acts_as_copy_target
 
   audited associated_with: [:daily_note, :transfer_note], except: [:daily_note_id, :transfer_note_id, :active]
 
-  attr_accessor :exempted, :dependence, :exempted_from_discipline
+  attr_accessor :exempted, :dependence, :exempted_from_discipline, :in_active_search
 
   before_save :nullify_notes_for_inactive_students
 
@@ -18,7 +20,9 @@ class DailyNoteStudent < ActiveRecord::Base
 
   validates :student,    presence: true
   validates :daily_note, presence: true
-  validates :note, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: lambda { |daily_note_student| daily_note_student.maximum_score } }, allow_blank: true
+  validates :note, numericality: { greater_than_or_equal_to: :minimum_score, less_than_or_equal_to: lambda { |daily_note_student| daily_note_student.maximum_score } }, allow_blank: true
+
+  default_scope -> { kept }
 
   scope :by_student_id, lambda { |student_id| where(student_id: student_id) }
   scope :by_discipline_id, lambda { |discipline_id| joins(:daily_note).merge(DailyNote.by_discipline_id(discipline_id)) }
@@ -30,6 +34,7 @@ class DailyNoteStudent < ActiveRecord::Base
   scope :active, -> { where(active: true) }
   scope :ordered, -> { joins(:student, daily_note: :avaliation).order(Avaliation.arel_table[:test_date], Student.arel_table[:name]) }
   scope :order_by_discipline_and_date, -> { joins(daily_note: [avaliation: :discipline]).order('disciplines.description, avaliations.test_date') }
+  scope :by_not_poster, ->(poster_sent) { where("daily_note_students.updated_at > ?", poster_sent) }
 
   def dependence?
     self.dependence
@@ -40,7 +45,11 @@ class DailyNoteStudent < ActiveRecord::Base
   end
 
   def recovered_note
-    recovery_note.to_f > note.to_f ? recovery_note : note
+    recovery_note.to_f > note.to_f ? recovery_note : note.to_f
+  end
+
+  def minimum_score
+    daily_note.avaliation.test_setting.minimum_score
   end
 
   def recovery_note

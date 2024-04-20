@@ -1,4 +1,4 @@
-class ExamRule < ActiveRecord::Base
+class ExamRule < ApplicationRecord
   acts_as_copy_target
 
   audited
@@ -9,6 +9,7 @@ class ExamRule < ActiveRecord::Base
   has_enumeration_for :frequency_type, with: FrequencyTypes
   has_enumeration_for :opinion_type, with: OpinionTypes
   has_enumeration_for :recovery_type, with: RecoveryTypes
+  has_enumeration_for :parallel_exams_calculation_type, with: ParallelExamsCalculationTypes
 
   belongs_to :rounding_table
   belongs_to :differentiated_exam_rule, class_name: 'ExamRule'
@@ -37,5 +38,13 @@ class ExamRule < ActiveRecord::Base
     else
       rounding_table
     end
+  end
+
+  def calculate_school_term_average?
+    parallel_exams_calculation_type == ParallelExamsCalculationTypes::AVERAGE
+  end
+
+  def calculate_school_term_sum?
+    parallel_exams_calculation_type == ParallelExamsCalculationTypes::SUM
   end
 end

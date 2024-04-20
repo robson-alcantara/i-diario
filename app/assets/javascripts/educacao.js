@@ -13,15 +13,12 @@ $(function () {
     trimValue: true
   });
 
-  $.ajaxSetup({
-    beforeSend: function () {
-      $('#page-loading').removeClass('hidden');
-    },
-    complete: function () {
-      if ($.active === 1) {
-        $('#page-loading').addClass('hidden');
-      }
-    }
+  $(document).ajaxStart(function() {
+    $('#page-loading').removeClass('hidden');
+  });
+
+  $(document).ajaxStop(function () {
+    $('#page-loading').addClass('hidden');
   });
 
   $.extend($.validator.messages, {
@@ -61,7 +58,7 @@ $(function () {
     deleteButton: false,
     editButton : false,
     colorButton : false,
-    fullscreenButton : true,
+    fullscreenButton : !window.fullscreen_disabled,
     fullscreenClass : 'fa fa-expand | fa fa-compress',
     fullscreenDiff : 3,
     onFullscreen : function() {
@@ -91,5 +88,39 @@ $(function () {
     var checkboxes = $(this).closest("table").find("tbody tr td > input[type=checkbox]");
 
     checkboxes.prop("checked", $(this).prop('checked'));
+  });
+
+  var
+      $online = $('.online'),
+      $offline = $('.offline');
+
+  Offline.on('confirmed-down', function () {
+    $('#page-loading').removeClass('hidden');
+    $online.fadeOut(function () {
+        $offline.fadeIn();
+    });
+  });
+
+  Offline.on('confirmed-up', function () {
+    $('#page-loading').addClass('hidden');
+    $offline.fadeOut(function () {
+        $online.fadeIn();
+    });
+  });
+
+  var link = $('.a-rotational-caret');
+  var icon = $('.rotational-caret');
+  var open = false;
+
+  link.on('click', function(){
+    if(open){
+      icon.addClass('rotational-caret-close');
+      icon.removeClass('rotational-caret-open');
+    } else{
+      icon.addClass('rotational-caret-open');
+      icon.removeClass('rotational-caret-close');
+    }
+
+    open = !open;
   });
 });

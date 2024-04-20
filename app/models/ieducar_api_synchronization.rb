@@ -1,11 +1,13 @@
-class IeducarApiSynchronization < ActiveRecord::Base
+class IeducarApiSynchronization < ApplicationRecord
   acts_as_copy_target
 
-  has_enumeration_for :status, with: ApiSynchronizationStatus, create_helpers: true,
-    create_scopes: true
+  has_enumeration_for :status,
+                      with: ApiSynchronizationStatus,
+                      create_helpers: true,
+                      create_scopes: true
 
   belongs_to :ieducar_api_configuration
-  belongs_to :author, class_name: "User"
+  belongs_to :author, class_name: 'User'
 
   validates :ieducar_api_configuration, presence: true
   validates :ieducar_api_configuration_id, uniqueness: { scope: :status }, if: :started?
@@ -39,23 +41,26 @@ class IeducarApiSynchronization < ActiveRecord::Base
   end
 
   def self.completed_unnotified
-    self.completed.unnotified.last
+    completed.unnotified.last
   end
 
   def self.last_error
-    self.error.unnotified.last
+    error.unnotified.last
   end
 
-  def mark_as_error!(message, full_error_message='')
+  def mark_as_error!(message, full_error_message = '')
     self.status = ApiSynchronizationStatus::ERROR
     self.error_message = message
     self.full_error_message = full_error_message
+
     save(validate: false)
-    worker_batch.try(:end!)
+    worker_batch.mark_as_error! if worker_batch.present? && !worker_batch.error?
   end
 
   def mark_as_completed!
-    update_attribute(:status, ApiSynchronizationStatus::COMPLETED)
+    update_last_synchronization_date
+
+    update(status: ApiSynchronizationStatus::COMPLETED)
     worker_batch.try(:end!)
   end
 
@@ -99,5 +104,15 @@ class IeducarApiSynchronization < ActiveRecord::Base
         configuration.start_synchronization(sync.author, current_entity.id)
       end
     end
+  end
+
+  def update_last_synchronization_date
+    IeducarApiConfiguration.current.update_synchronized_at!(started_at)
+  end
+
+  def error_by_user(user)
+    sync_error = full_error_message if user.admin?
+    sync_error = error_message if sync_error.blank?
+    sync_error
   end
 end

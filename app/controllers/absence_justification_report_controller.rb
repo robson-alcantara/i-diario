@@ -1,27 +1,33 @@
 class AbsenceJustificationReportController < ApplicationController
+  before_action :require_current_classroom
   before_action :require_current_teacher
 
   def form
-    @absence_justification_report_form = AbsenceJustificationReportForm.new
-    @absence_justification_report_form.unity_id = current_user_unity.id
-    @absence_justification_report_form.school_calendar_year = current_school_calendar
-    @absence_justification_report_form.current_teacher_id = current_teacher
+    @absence_justification_report_form = AbsenceJustificationReportForm.new(
+      classroom_id: current_user_classroom.id,
+      unity_id: current_unity.id,
+      current_teacher_id: current_teacher.id,
+      school_calendar_year: current_school_calendar
+    )
+
+    set_options_by_user
   end
 
   def report
     @absence_justification_report_form = AbsenceJustificationReportForm.new(resource_params)
-    @absence_justification_report_form.unity_id = current_user_unity.id
-    @absence_justification_report_form.school_calendar_year = current_school_calendar
     @absence_justification_report_form.current_teacher_id = current_teacher
+    @absence_justification_report_form.user_id = user_id
+    @absence_justification_report_form.school_calendar_year = fetch_school_calendar_by_user
 
     if @absence_justification_report_form.valid?
-      fetch_absences
-      absence_justification_report = AbsenceJustificationReport.build(current_entity_configuration,
-                                                                      @absence_justifications,
-                                                                      @absence_justification_report_form)
+      absence_justification_report = AbsenceJustificationReport.build(
+        current_entity_configuration,
+        @absence_justification_report_form
+      )
 
       send_pdf(t('routes.absence_justification'), absence_justification_report.render)
     else
+      set_options_by_user
       clear_invalid_dates
       render :form
     end
@@ -29,36 +35,16 @@ class AbsenceJustificationReportController < ApplicationController
 
   private
 
-  def fetch_absences
-    author_type = (params[:absence_justification_report_form] || []).delete(:author)
-
-    if @absence_justification_report_form.frequence_type_by_discipline?
-      @absence_justifications = AbsenceJustification.by_author(author_type, current_teacher)
-                                                    .by_unity(current_user_unity.id)
-                                                    .by_school_calendar_report(current_school_calendar)
-                                                    .by_classroom(@absence_justification_report_form.classroom_id)
-                                                    .by_discipline_id(@absence_justification_report_form.discipline_id)
-                                                    .by_date_range(@absence_justification_report_form.absence_date, @absence_justification_report_form.absence_date_end)
-                                                    .order(absence_date: :asc)
-    else
-      @absence_justifications = AbsenceJustification.by_author(author_type, current_teacher)
-                                                    .by_unity(current_user_unity.id)
-                                                    .by_school_calendar_report(current_school_calendar)
-                                                    .by_classroom(@absence_justification_report_form.classroom_id)
-                                                    .by_date_range(@absence_justification_report_form.absence_date, @absence_justification_report_form.absence_date_end)
-                                                    .order(absence_date: :asc)
-    end
-  end
-
   def resource_params
-    params.require(:absence_justification_report_form).permit(:unity,
-                                                              :classroom_id,
-                                                              :discipline_id,
-                                                              :absence_date,
-                                                              :absence_date_end,
-                                                              :school_calendar_year,
-                                                              :current_teacher_id,
-                                                              :author)
+    params.require(:absence_justification_report_form).permit(
+      :unity_id,
+      :classroom_id,
+      :absence_date,
+      :absence_date_end,
+      :school_calendar_year,
+      :current_teacher_id,
+      :author
+    )
   end
 
   def clear_invalid_dates
@@ -73,5 +59,35 @@ class AbsenceJustificationReportController < ApplicationController
     rescue ArgumentError
       @absence_justification_report_form.absence_date_end = ''
     end
+  end
+
+  def user_id
+    @user_id ||= UserDiscriminatorService.new(
+      current_user,
+      current_user.current_role_is_admin_or_employee?
+    ).user_id
+  end
+
+  def fetch_school_calendar_by_user
+    classroom = Classroom.find_by(id: @absence_justification_report_form.classroom_id)
+    unity = Unity.find_by(id: @absence_justification_report_form.unity_id)
+
+    CurrentSchoolCalendarFetcher.new(unity, classroom, current_user_school_year).fetch
+  end
+
+  def set_options_by_user
+    @admin_or_teacher ||= current_user.current_role_is_admin_or_employee?
+    @unities ||= @admin_or_teacher ? Unity.ordered : [current_user_unity]
+
+    return fetch_linked_by_teacher unless current_user.current_role_is_admin_or_employee?
+
+    @classrooms ||= Classroom.by_unity_id(@absence_justification_report_form.unity_id)
+                             .by_year(current_user_school_year || Date.current.year)
+                             .ordered
+  end
+
+  def fetch_linked_by_teacher
+    @fetch_linked_by_teacher ||= TeacherClassroomAndDisciplineFetcher.fetch!(current_teacher.id, current_unity, current_school_year)
+    @classrooms ||= @fetch_linked_by_teacher[:classrooms]
   end
 end

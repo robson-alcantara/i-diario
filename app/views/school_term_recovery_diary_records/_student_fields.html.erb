@@ -1,4 +1,6 @@
-<tr class="nested-fields <%= f.object.persisted? ? 'existing' : 'dynamic' %>" style="<%= 'display: none;' if f.object.marked_for_destruction? %>">
+<tr class="nested-fields"
+    style="<%= 'display: none;' if f.object.marked_for_destruction? %>"
+    id="<%= f.object.student_id %>">
   <td>
     <% if f.object.persisted? %>
       <%= f.hidden_field :id %>
@@ -19,13 +21,13 @@
             @school_term_recovery_diary_record.recovery_diary_record.classroom,
             @school_term_recovery_diary_record.recovery_diary_record.discipline,
             @school_term_recovery_diary_record.step
-          ).recovery_average.to_d.truncate(decimal_places) %>
+          ).recovery_average&.to_d&.truncate(decimal_places) %>
     </span>
   </td>
 
   <td>
     <%= f.input :score, label: false,
         input_html: decimal_input_mask(decimal_places),
-        readonly: f.object.exempted_from_discipline %>
+        readonly: (!f.object.active && !f.object.active.nil?) || f.object.exempted_from_discipline %>
   </td>
 </tr>

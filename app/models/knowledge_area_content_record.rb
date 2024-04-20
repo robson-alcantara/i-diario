@@ -1,6 +1,7 @@
 class KnowledgeAreaContentRecord < ActiveRecord::Base
   include Audit
   include TeacherRelationable
+  include Translatable
 
   teacher_relation_columns only: :knowledge_areas
 
@@ -12,6 +13,8 @@ class KnowledgeAreaContentRecord < ActiveRecord::Base
   belongs_to :content_record, dependent: :destroy
   accepts_nested_attributes_for :content_record
   has_and_belongs_to_many :knowledge_areas
+
+  delegate :classroom_id, :classroom, to: :content_record
 
   scope :by_unity_id, lambda { |unity_id| joins(content_record: :classroom).where(Classroom.arel_table[:unity_id].eq(unity_id) ) }
   scope :by_teacher_id, lambda { |teacher_id| joins(:content_record).where(content_records: { teacher_id: teacher_id }) }
@@ -32,6 +35,9 @@ class KnowledgeAreaContentRecord < ActiveRecord::Base
       joins(:content_record).merge(ContentRecord.where.not(teacher_id: current_teacher_id))
     end
   }
+  scope :order_by_classroom, lambda {
+    joins(content_record: :classroom).order(Classroom.arel_table[:description].desc)
+  }
 
   validates :content_record, presence: true
   validates :knowledge_area_ids, presence: true
@@ -40,7 +46,7 @@ class KnowledgeAreaContentRecord < ActiveRecord::Base
   validate :ensure_is_school_day
 
   delegate :contents, :classroom, :record_date, to: :content_record
-  delegate :grade, to: :classroom
+  delegate :grades, to: :classroom
 
   def knowledge_area_ids
     knowledge_areas.collect(&:id).join(',')
@@ -51,6 +57,7 @@ class KnowledgeAreaContentRecord < ActiveRecord::Base
   def valid_for_destruction?
     @valid_for_destruction if defined?(@valid_for_destruction)
     @valid_for_destruction = begin
+      content_record.validation_type = :destroy
       content_record.valid?
       forbidden_error = I18n.t('errors.messages.not_allowed_to_post_in_date')
       if content_record.errors[:record_date].include?(forbidden_error)
@@ -82,7 +89,7 @@ class KnowledgeAreaContentRecord < ActiveRecord::Base
                   content_record.school_calendar.present? &&
                   record_date.present?
 
-    unless content_record.school_calendar.school_day?(record_date, grade, classroom)
+    unless content_record.school_calendar.school_day?(record_date, grades.first, classroom_id)
       errors.add(:base, "")
       content_record.errors.add(:record_date, :not_school_calendar_day)
     end

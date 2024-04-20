@@ -1,4 +1,6 @@
-class Student < ActiveRecord::Base
+class Student < ApplicationRecord
+  include Discardable
+
   acts_as_copy_target
 
   audited
@@ -7,9 +9,9 @@ class Student < ActiveRecord::Base
 
   has_and_belongs_to_many :users
 
-  has_many :student_biometrics
   has_many :student_enrollments
-  has_many :absence_justifications
+  has_many :absence_justifications_students
+  has_many :absence_justifications, through: :absence_justifications_students
   has_many :avaliation_exemptions
   has_many :complementary_exam_students
   has_many :conceptual_exams
@@ -20,22 +22,28 @@ class Student < ActiveRecord::Base
   has_many :recovery_diary_record_students
   has_many :transfer_notes
   has_many :opn_tb_exams
+  has_many :deficiency_students, dependent: :destroy
+  has_many :deficiencies, through: :deficiency_students
+  has_many :student_unifications
+  has_many :student_unification_students
 
-  attr_accessor :exempted_from_discipline
+  attr_accessor :exempted_from_discipline, :in_active_search
 
   validates :name, presence: true
   validates :api_code, presence: true, if: :api?
 
+  after_save :update_name_tokens
+
+  default_scope -> { kept }
+
   scope :api, -> { where(arel_table[:api].eq(true)) }
   scope :ordered, -> { order(:name) }
-  scope :order_by_sequence, lambda { |classroom_id, start_date, end_date|
-    joins(:student_enrollments)
-      .merge(
-        StudentEnrollment.by_classroom(classroom_id)
-                         .by_date_range(start_date, end_date)
-                         .active
-                         .ordered
-      )
+  scope :by_name, lambda { |name|
+    where(
+      "students.name_tokens @@ plainto_tsquery('portuguese', ?)", name
+    ).order(
+      "ts_rank_cd(students.name_tokens, plainto_tsquery('portuguese', '#{name}')) desc"
+    )
   }
 
   def self.search(value)
@@ -69,6 +77,19 @@ class Student < ActiveRecord::Base
   end
 
   def classrooms
-    Classroom.joins(:student_enrollment_classrooms).merge(StudentEnrollmentClassroom.by_student(self.id)).uniq
+    Classroom.joins(classrooms_grades: :student_enrollment_classrooms).merge(StudentEnrollmentClassroom.by_student(self.id)).distinct
+  end
+
+  def current_classrooms
+    Classroom.joins(classrooms_grades: :student_enrollment_classrooms).merge(
+      StudentEnrollmentClassroom.by_student(id)
+                                .by_date(Date.current)
+    ).distinct
+  end
+
+  private
+
+  def update_name_tokens
+    Student.where(id: id).update_all("name_tokens = to_tsvector('portuguese', name)")
   end
 end

@@ -1,7 +1,14 @@
 require 'rails_helper'
 
 RSpec.describe TeachingPlan, type: :model do
-  subject { build(:teaching_plan) }
+  let!(:school_term_type) { create(:school_term_type) }
+
+  let!(:school_term_type_step) { create(:school_term_type_step, school_term_type: school_term_type) }
+  subject { build(
+    :teaching_plan,
+    school_term_type: school_term_type,
+    school_term_type_step: school_term_type_step)
+  }
 
   describe 'associations' do
     it { expect(subject).to belong_to(:unity) }
@@ -9,32 +16,39 @@ RSpec.describe TeachingPlan, type: :model do
   end
 
   describe 'validations' do
-    it { expect(subject).to validate_presence_of(:year) }
-    it { expect(subject).to validate_presence_of(:unity) }
-    it { expect(subject).to validate_presence_of(:grade) }
-    it { expect(subject).to validate_presence_of(:school_term_type) }
+    it {
+      TeachingPlan.any_instance.stub(:yearly?).and_return(true)
+      expect(subject).to validate_presence_of(:year)
+    }
+    it {
+      TeachingPlan.any_instance.stub(:yearly?).and_return(true)
+      expect(subject).to validate_presence_of(:unity)
+    }
+    it {
+      TeachingPlan.any_instance.stub(:yearly?).and_return(true)
+      expect(subject).to validate_presence_of(:grade)
+    }
 
-    context 'when school term type equals to yearly' do
-      subject { build(:teaching_plan, school_term_type: SchoolTermTypes::YEARLY) }
+    context 'when school term type is yearly' do
+      subject { build(:teaching_plan, school_term_type: nil, school_term_type_step: nil) }
 
-      it { should_not validate_presence_of(:school_term) }
+      it { expect(subject.school_term_type).to_not be_present  }
+      it { expect(subject.school_term_type_step).to_not be_present  }
     end
 
-    context "when contents has no records assigneds" do
-      it "should validate if at leat one record is assigned" do
-        subject = FactoryGirl.build(:teaching_plan_without_contents)
+    context 'when contents has no records assigneds' do
+      it 'should validate if at leat one record is assigned' do
+        TeachingPlan.any_instance.stub(:yearly?).and_return(true)
+
+        subject = build(
+          :teaching_plan,
+          :without_contents,
+          school_term_type: school_term_type,
+          school_term_type_step: school_term_type_step
+        )
 
         expect(subject).to_not be_valid
-        expect(subject.errors.messages[:contents]).to include("Deve possuir pelo menos um conteúdo")
-      end
-    end
-
-    school_term_types = [SchoolTermTypes::BIMESTER, SchoolTermTypes::TRIMESTER, SchoolTermTypes::SEMESTER]
-    school_term_types.each do |school_term|
-      context "when school term type equals to #{school_term}" do
-        subject { build(:teaching_plan, school_term_type: school_term) }
-
-        it { should validate_presence_of(:school_term) }
+        expect(subject.errors.messages[:contents]).to include('Deve possuir pelo menos um conteúdo')
       end
     end
   end

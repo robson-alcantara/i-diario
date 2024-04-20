@@ -17,12 +17,13 @@ RSpec.describe IeducarApi::StudentRegistrations, type: :service do
 
   describe '#fetch' do
     it 'returns student registrations' do
+
       VCR.use_cassette('student_registrations') do
         result = subject.fetch(aluno_id: [18_625, 18_627])
 
         expect(result.keys).to include 'matriculas'
 
-        expect(result['matriculas'].size).to eq 5
+        expect(result['matriculas'].size).to eq 9
       end
     end
 

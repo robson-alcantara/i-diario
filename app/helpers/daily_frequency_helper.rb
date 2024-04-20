@@ -32,34 +32,14 @@ module DailyFrequencyHelper
   end
 
   def get_start_at(daily_frequency)
-    if daily_frequency.classroom.calendar
-      get_school_calendar_classroom_step(daily_frequency).start_at
-    else
-      get_school_calendar_step(daily_frequency).start_at
-    end
+    StepsFetcher.new(daily_frequency.classroom).step_by_date(daily_frequency.frequency_date).start_at
   end
 
   def get_end_at(daily_frequency)
-    if daily_frequency.classroom.calendar
-      get_school_calendar_classroom_step(daily_frequency).end_at
-    else
-      get_school_calendar_step(daily_frequency).end_at
-    end
+    StepsFetcher.new(daily_frequency.classroom).step_by_date(daily_frequency.frequency_date).end_at
   end
 
-  def get_school_calendar_step(daily_frequency)
-    daily_frequency.school_calendar.step(daily_frequency.frequency_date)
-  end
-
-  def get_school_calendar_classroom_step(daily_frequency)
-    daily_frequency.school_calendar
-                   .classrooms
-                   .by_classroom(daily_frequency.classroom_id)
-                   .first
-                   .classroom_step(daily_frequency.frequency_date)
-  end
-
-  def frequency_student_name_class(dependence, active, exempted_from_discipline)
+  def frequency_student_name_class(dependence, active, exempted_from_discipline, in_active_search)
     name_class = 'multiline'
 
     if !active
@@ -68,18 +48,22 @@ module DailyFrequencyHelper
       name_class += ' dependence-student'
     elsif exempted_from_discipline
       name_class += ' exempted-student-from-discipline'
+    elsif in_active_search
+      name_class += ' in-active-search'
     end
 
     name_class
   end
 
-  def frequency_student_name(student, dependence, active, exempted_from_discipline)
+  def frequency_student_name(student, dependence, active, exempted_from_discipline, in_active_search)
     if !active
-      "**#{student}"
+      "***#{student}"
     elsif dependence
       "*#{student}"
     elsif exempted_from_discipline
       "****#{student}"
+    elsif in_active_search
+      "*****#{student}"
     else
       student.to_s
     end

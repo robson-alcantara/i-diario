@@ -6,7 +6,7 @@ Rails.application.configure do
   # since you don't have to restart the web server when you make code changes.
   config.cache_classes = false
 
-  config.assets.js_compressor = Uglifier.new(harmony: true)
+  config.assets.js_compressor = false
   # Do not eager load code on boot.
   config.eager_load = false
 
@@ -33,12 +33,16 @@ Rails.application.configure do
   # Raises helpful error messages.
   config.assets.raise_runtime_errors = true
 
+  config.assets.quiet = true
+
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
 
   config.action_mailer.default_url_options = { :host => 'localhost:3000' }
-  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.delivery_method = :letter_opener_web
   config.action_mailer.smtp_settings = { :address => "localhost", :port => 1025 }
+
+  config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   # Bullet configuration
   config.after_initialize do
@@ -47,10 +51,4 @@ Rails.application.configure do
     Bullet.console = true
     Bullet.rails_logger = true
   end
-
-  # Paperclip configuration
-  Paperclip::Attachment.default_options[:storage] = :fog
-  Paperclip::Attachment.default_options[:fog_credentials] = { provider: "Local", local_root: "#{Rails.root}/public/system"}
-  Paperclip::Attachment.default_options[:fog_directory] = ""
-  Paperclip::Attachment.default_options[:fog_host] = "http://localhost:3000"
 end

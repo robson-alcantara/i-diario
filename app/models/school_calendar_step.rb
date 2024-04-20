@@ -25,6 +25,13 @@ class SchoolCalendarStep < ActiveRecord::Base
   scope :posting_date_after_and_before, lambda { |date|
     where(arel_table[:start_date_for_posting].lteq(date).and(arel_table[:end_date_for_posting].gteq(date)))
   }
+  scope :by_date_range, lambda { |start_date, end_date|
+    where.not(
+      arel_table[:start_at].gt(end_date.to_date).or(
+        arel_table[:end_at].lt(start_date.to_date)
+      )
+    )
+  }
   scope :ordered, -> { order(:start_at) }
 
   delegate :unity, to: :school_calendar
@@ -37,6 +44,18 @@ class SchoolCalendarStep < ActiveRecord::Base
     school_calendar.school_day?(date)
   end
 
+  def school_calendar_day_allows_entry?(date)
+    step_from_date = school_calendar.step(date)
+
+    return false unless step_from_date.eql?(self)
+
+    school_calendar.day_allows_entry?(date)
+  end
+
+  def first_school_calendar_date
+    school_calendar.school_day_checker(start_at).next_school_day
+  end
+
   def school_day_dates
     return if start_at.blank? || end_at.blank? || school_calendar.blank?
 
@@ -47,19 +66,6 @@ class SchoolCalendarStep < ActiveRecord::Base
     end
 
     dates
-  end
-
-  def test_setting
-    school_term = SchoolTermConverter.convert(school_calendar.step(start_at))
-    TestSetting.where(
-      TestSetting.arel_table[:year].eq(school_calendar.year)
-        .and(
-          TestSetting.arel_table[:exam_setting_type].eq(ExamSettingTypes::GENERAL)
-          .or(TestSetting.arel_table[:school_term].eq(school_term))
-        )
-    )
-    .order(school_term: :desc)
-    .first
   end
 
   def school_calendar_parent
