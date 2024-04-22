@@ -1,0 +1,31 @@
+<tbody id='resources-tbody'>
+  <% if @opn_tb_exams.empty? %>
+    <tr>
+      <td class='no_record_found' colspan='7'><%= t('views.index.no_record_found')%></td>
+    </tr>
+  <% else %>
+    <% @opn_tb_exams.each do |opn_tb_exam| %>
+      <tr>
+        <td><%= opn_tb_exam.classroom.unity %></td>
+        <td><%= opn_tb_exam.classroom %></td>
+        <td><span class="multiline"> <%= opn_tb_exam.student %> </span></td>
+        <td><%= opn_tb_exam.step_number %></td>
+        <!--
+        <td>
+          <%#<% opn_tb_exam.teacher_id = current_teacher_id %>
+          <span class='<%#= opn_tb_exam_label(opn_tb_exam.status) %>'>
+            <%#= opn_tb_exam.status_humanize %>
+          </span>
+          
+        </td>
+        -->
+        <td class='actions'>
+          <%= link_to t('views.index.edit'),
+            edit_opn_tb_exam_path(opn_tb_exam), class: 'btn btn-success' %>
+          <%= link_to t('views.index.delete'), opn_tb_exam_path(opn_tb_exam),
+            class: 'btn btn-danger', method: 'delete', data: { confirm: t('views.index.confirm') } %>
+        </td>
+      </tr>
+    <% end %>
+  <% end %>
+</tbody>

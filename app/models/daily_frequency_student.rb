@@ -49,10 +49,18 @@ class DailyFrequencyStudent < ActiveRecord::Base
 
   def to_s
     if present?
-      TermsDictionary.cached_current.try(:presence_identifier_character) || '.'
+      if justified?
+        'FJ'
+      else
+        TermsDictionary.cached_current.try(:presence_identifier_character) || '.'
+      end
     else
       'F'
     end
+  end
+
+  def justified?
+    AbsenceJustification.where(' absence_date <= ? and absence_date_end >= ? and student_id = ?', frequency_date, frequency_date, student_id ).present?
   end
 
   def sequence

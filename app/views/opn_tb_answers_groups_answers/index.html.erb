@@ -1,0 +1,31 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Opn Tb Answers Groups Answers</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Opn tb answers group</th>
+      <th>Opn tb answer</th>
+      <th>Order</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @opn_tb_answers_groups_answers.each do |opn_tb_answers_groups_answer| %>
+      <tr>
+        <td><%= opn_tb_answers_groups_answer.opn_tb_answers_group %></td>
+        <td><%= opn_tb_answers_groups_answer.opn_tb_answer %></td>
+        <td><%= opn_tb_answers_groups_answer.order %></td>
+        <td><%= link_to 'Show', opn_tb_answers_groups_answer %></td>
+        <td><%= link_to 'Edit', edit_opn_tb_answers_groups_answer_path(opn_tb_answers_groups_answer) %></td>
+        <td><%= link_to 'Destroy', opn_tb_answers_groups_answer, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Opn tb answers groups answer', new_opn_tb_answers_groups_answer_path %>

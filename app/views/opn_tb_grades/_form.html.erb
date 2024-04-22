@@ -1,0 +1,17 @@
+<%= simple_form_for(@opn_tb_grade) do |f| %>
+  <%= f.error_notification %>
+
+  <div class="form-inputs">
+    <%= f.association :opn_tb, label_method: :description %>
+    <%= f.association :grade %>
+    <%= f.input :year %>
+    <br>Avaliation<br>
+    <%= f.check_box :avaliation %>
+    <br>Final<br>
+    <%= f.check_box :final %>
+  </div>
+
+  <div class="form-actions">
+    <%= f.button :submit %>
+  </div>
+<% end %>

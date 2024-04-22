@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Opn Tb Gradation Levels</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Initials</th>
+      <th>Description</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @opn_tb_gradation_levels.each do |opn_tb_gradation_level| %>
+      <tr>
+        <td><%= opn_tb_gradation_level.initials %></td>
+        <td><%= opn_tb_gradation_level.description %></td>
+        <td><%= link_to 'Show', opn_tb_gradation_level %></td>
+        <td><%= link_to 'Edit', edit_opn_tb_gradation_level_path(opn_tb_gradation_level) %></td>
+        <td><%= link_to 'Destroy', opn_tb_gradation_level, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Opn tb gradation level', new_opn_tb_gradation_level_path %>

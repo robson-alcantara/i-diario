@@ -1,0 +1,21 @@
+<%= simple_form_for(@opn_tb_exam) do |f| %>
+  <%= f.error_notification %>
+
+  <div class="form-inputs">
+
+    <% i = 0 %>
+    <%= f.fields_for :opn_tb_exam_values, [OpnTbExamValue.new]*@opn_tb_items.length do |opn_tb_exam_value| %>               
+      
+      <%= opn_tb_exam_value.hidden_field :opn_tb_exam, value: @opn_tb_exam.id, class: 'form-control' %>
+      <%= opn_tb_exam_value.input :opn_tb_item, :collection => @hash , :selected => @hash.to_a[i], :readonly => true,  :include_hidden => false %>      
+      <%= opn_tb_exam_value.association :opn_tb_answer, :label_method => :description, :value_method => :id %>
+      <% i = i + 1 %>
+
+      <div class="form-actions">
+      <%= opn_tb_exam_value.button :submit %>
+      </div>      
+    <% end %>  
+
+
+  </div>
+<% end %>

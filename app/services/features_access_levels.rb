@@ -35,6 +35,9 @@ class FeaturesAccessLevels
       :knowledge_area_teaching_plans,
       :observation_diary_records,
       :observation_record_report,
+      :daily_record_report,
+      :individual_record_report,
+      :opn_tb_exams,
       :school_calendar_events,
       :school_calendars,
       :school_term_recovery_diary_records,
@@ -45,7 +48,12 @@ class FeaturesAccessLevels
       :change_school_year,
       :daily_frequencies_in_batchs,
       :learning_objectives_and_skills,
-      :avaliation_recovery_lowest_notes
+      :avaliation_recovery_lowest_notes,
+      :progress_report,
+      :parent_report,
+      :consolidated_progress_report,
+      :monthly_frequencies_report,
+      :minutes_of_final_results_report
     ]
   end
 

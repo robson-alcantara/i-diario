@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Opn Tbs</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th>Opn tb answers group</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @opn_tbs.each do |opn_tb| %>
+      <tr>
+        <td><%= opn_tb.description %></td>
+        <td><%= opn_tb.opn_tb_answers_group %></td>
+        <td><%= link_to 'Show', opn_tb %></td>
+        <td><%= link_to 'Edit', edit_opn_tb_path(opn_tb) %></td>
+        <td><%= link_to 'Destroy', opn_tb, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Opn tb', new_opn_tb_path %>

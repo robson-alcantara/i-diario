@@ -1,0 +1,31 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Opn Tb Grades</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Opn tb</th>
+      <th>Grade</th>
+      <th>Year</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @opn_tb_grades.each do |opn_tb_grade| %>
+      <tr>
+        <td><%= opn_tb_grade.opn_tb.description %></td>
+        <td><%= opn_tb_grade.grade %></td>
+        <td><%= opn_tb_grade.year %></td>
+        <td><%= link_to 'Show', opn_tb_grade %></td>
+        <td><%= link_to 'Edit', edit_opn_tb_grade_path(opn_tb_grade) %></td>
+        <td><%= link_to 'Destroy', opn_tb_grade, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Opn tb grade', new_opn_tb_grade_path %>

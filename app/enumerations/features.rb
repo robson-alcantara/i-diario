@@ -35,6 +35,9 @@ class Features < EnumerateIt::Base
                    :observation_diary_records,
                    :observation_record_report,
                    :partial_score_record_report,
+                   :daily_record_report,
+                   :individual_record_report,
+                   :opn_tb_exams,
                    :pedagogical_trackings,
                    :roles,
                    :school_calendar_events,
@@ -49,7 +52,12 @@ class Features < EnumerateIt::Base
                    :translations,
                    :lessons_boards,
                    :daily_frequencies_in_batchs,
-                   :avaliation_recovery_lowest_notes
+                   :avaliation_recovery_lowest_notes,
+                   :progress_report,
+                   :parent_report,
+                   :consolidated_progress_report,
+                   :monthly_frequencies_report,
+                   :minutes_of_final_results_report
 
 
   sort_by :translation
