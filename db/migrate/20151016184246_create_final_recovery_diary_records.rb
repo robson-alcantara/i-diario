@@ -1,4 +1,4 @@
-class CreateFinalRecoveryDiaryRecords < ActiveRecord::Migration[4.2]
+class CreateFinalRecoveryDiaryRecords < ActiveRecord::Migration
   def change
     create_table :final_recovery_diary_records do |t|
       t.references(

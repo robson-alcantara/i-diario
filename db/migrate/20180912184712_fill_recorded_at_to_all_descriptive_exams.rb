@@ -1,4 +1,4 @@
-class FillRecordedAtToAllDescriptiveExams < ActiveRecord::Migration[4.2]
+class FillRecordedAtToAllDescriptiveExams < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE descriptive_exams

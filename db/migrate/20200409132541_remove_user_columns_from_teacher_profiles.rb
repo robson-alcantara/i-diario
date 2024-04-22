@@ -1,4 +1,4 @@
-class RemoveUserColumnsFromTeacherProfiles < ActiveRecord::Migration[4.2]
+class RemoveUserColumnsFromTeacherProfiles < ActiveRecord::Migration
   def up
     remove_column :teacher_profiles, :user_id
     remove_column :teacher_profiles, :user_role_id

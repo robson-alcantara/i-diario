@@ -1,4 +1,4 @@
-class UserRole < ApplicationRecord
+class UserRole < ActiveRecord::Base
   include Searchable
 
   acts_as_copy_target

@@ -1,4 +1,4 @@
-class CreateTableContents < ActiveRecord::Migration[4.2]
+class CreateTableContents < ActiveRecord::Migration
   def change
     create_table :contents do |t|
       t.string :description, null: false

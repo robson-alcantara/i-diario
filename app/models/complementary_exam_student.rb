@@ -1,4 +1,4 @@
-class ComplementaryExamStudent < ApplicationRecord
+class ComplementaryExamStudent < ActiveRecord::Base
   include Audit
   include Discardable
 

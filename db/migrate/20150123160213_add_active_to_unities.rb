@@ -1,4 +1,4 @@
-class AddActiveToUnities < ActiveRecord::Migration[4.2]
+class AddActiveToUnities < ActiveRecord::Migration
   def change
     add_column :unities, :active, :boolean, default: false
 

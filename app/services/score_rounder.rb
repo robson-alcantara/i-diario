@@ -1,8 +1,7 @@
 class ScoreRounder
-  def initialize(classroom, rounded_avaliation, step = nil)
+  def initialize(classroom, rounded_avaliation)
     @classroom = classroom
     @rounded_avaliation = rounded_avaliation
-    @step = step
   end
 
   def round(score)
@@ -75,7 +74,7 @@ class ScoreRounder
   end
 
   def number_of_decimal_places
-    TestSettingFetcher.current(@classroom, @step).number_of_decimal_places
+    TestSettingFetcher.current(@classroom).number_of_decimal_places
   end
 
   def truncate_score(score)

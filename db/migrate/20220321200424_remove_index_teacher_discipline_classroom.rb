@@ -1,4 +1,4 @@
-class RemoveIndexTeacherDisciplineClassroom < ActiveRecord::Migration[4.2]
+class RemoveIndexTeacherDisciplineClassroom < ActiveRecord::Migration
   disable_ddl_transaction!
 
   def up

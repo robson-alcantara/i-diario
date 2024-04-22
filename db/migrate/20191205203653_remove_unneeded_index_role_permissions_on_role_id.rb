@@ -1,4 +1,4 @@
-class RemoveUnneededIndexRolePermissionsOnRoleId < ActiveRecord::Migration[4.2]
+class RemoveUnneededIndexRolePermissionsOnRoleId < ActiveRecord::Migration
   def change
     remove_index :role_permissions, name: "index_role_permissions_on_role_id"
   end

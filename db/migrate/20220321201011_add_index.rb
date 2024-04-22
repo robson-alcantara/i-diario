@@ -1,4 +1,4 @@
-class AddIndex < ActiveRecord::Migration[4.2]
+class AddIndex < ActiveRecord::Migration
   disable_ddl_transaction!
 
   def change

@@ -1,4 +1,4 @@
-class UpdateClassroomToDailyNoteStatusesView < ActiveRecord::Migration[4.2]
+class UpdateClassroomToDailyNoteStatusesView < ActiveRecord::Migration
   def change
     execute <<-SQL
     DROP VIEW daily_note_statuses;

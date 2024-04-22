@@ -1,4 +1,4 @@
-class ChangeColumnOldRecordToDefaultFalse < ActiveRecord::Migration[4.2]
+class ChangeColumnOldRecordToDefaultFalse < ActiveRecord::Migration
   def change
     change_column :conceptual_exams, :old_record, :boolean, default: false
   end

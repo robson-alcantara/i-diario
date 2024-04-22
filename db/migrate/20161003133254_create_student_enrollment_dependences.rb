@@ -1,4 +1,4 @@
-class CreateStudentEnrollmentDependences < ActiveRecord::Migration[4.2]
+class CreateStudentEnrollmentDependences < ActiveRecord::Migration
   def change
     create_table :student_enrollment_dependences do |t|
       t.integer :student_enrollment_id

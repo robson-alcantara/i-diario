@@ -1,2 +1,0 @@
-module OpnTbAnswersGroupsHelper
-end

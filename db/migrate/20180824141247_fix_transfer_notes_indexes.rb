@@ -1,4 +1,4 @@
-class FixTransferNotesIndexes < ActiveRecord::Migration[4.2]
+class FixTransferNotesIndexes < ActiveRecord::Migration
   def change
     remove_index :transfer_notes, :classroom_id
     remove_index :transfer_notes, :discipline_id

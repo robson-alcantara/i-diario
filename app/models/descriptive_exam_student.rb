@@ -1,10 +1,10 @@
-class DescriptiveExamStudent < ApplicationRecord
+class DescriptiveExamStudent < ActiveRecord::Base
   include Discardable
   acts_as_copy_target
 
   audited associated_with: :descriptive_exam, except: [:descriptive_exam_id, :dependence]
 
-  attr_accessor :exempted_from_discipline, :active_student
+  attr_accessor :exempted_from_discipline
 
   belongs_to :descriptive_exam
   belongs_to :student

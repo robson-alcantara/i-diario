@@ -35,9 +35,6 @@ class Translation < ActiveRecord::Base
   end
 
   def self.cache_key
-    # rubocop:todo entender o motivo disso influenciar nos testes do rspec para remover essa lógica
-    domain = Rails.env.test? ? 'localhost' : Entity.current_domain
-
-    "#{domain}-#{CACHE_KEY}-#{Translation.order(:updated_at).last&.updated_at}"
+    "#{Entity.current_domain}-#{CACHE_KEY}-#{Translation.order(:updated_at).last&.updated_at}"
   end
 end

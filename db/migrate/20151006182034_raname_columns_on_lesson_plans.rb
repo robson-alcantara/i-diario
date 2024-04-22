@@ -1,4 +1,4 @@
-class RanameColumnsOnLessonPlans < ActiveRecord::Migration[4.2]
+class RanameColumnsOnLessonPlans < ActiveRecord::Migration
   def change
     change_table :lesson_plans do |t|
      t.rename :content_date, :lesson_plan_date

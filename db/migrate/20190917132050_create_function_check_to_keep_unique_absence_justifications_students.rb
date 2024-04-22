@@ -1,4 +1,4 @@
-class CreateFunctionCheckToKeepUniqueAbsenceJustificationsStudents < ActiveRecord::Migration[4.2]
+class CreateFunctionCheckToKeepUniqueAbsenceJustificationsStudents < ActiveRecord::Migration
   def change
     execute <<-SQL
       CREATE OR REPLACE FUNCTION check_absence_justification_student_is_unique(

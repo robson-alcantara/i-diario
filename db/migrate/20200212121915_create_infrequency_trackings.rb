@@ -1,4 +1,4 @@
-class CreateInfrequencyTrackings < ActiveRecord::Migration[4.2]
+class CreateInfrequencyTrackings < ActiveRecord::Migration
   def change
     create_table :infrequency_trackings do |t|
       t.references :student, index: true, foreign_key: true

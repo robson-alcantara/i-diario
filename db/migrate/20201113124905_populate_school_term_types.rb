@@ -1,4 +1,4 @@
-class PopulateSchoolTermTypes < ActiveRecord::Migration[4.2]
+class PopulateSchoolTermTypes < ActiveRecord::Migration
   def change
     (
       SchoolCalendar.uniq.pluck(:step_type_description) +

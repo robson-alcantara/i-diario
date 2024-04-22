@@ -1,4 +1,4 @@
-class CreateSchoolCalendarDisciplineGrades < ActiveRecord::Migration[4.2]
+class CreateSchoolCalendarDisciplineGrades < ActiveRecord::Migration
   def change
     create_table :school_calendar_discipline_grades do |t|
       t.belongs_to :school_calendar

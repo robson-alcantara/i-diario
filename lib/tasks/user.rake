@@ -19,14 +19,4 @@ namespace :user do
       puts user_updater.status
     end
   end
-  namespace :block do
-    desc 'Blocks users'
-    task block_users: :environment do
-      user_blocker = BlockUserService.new(ENV)
-
-      user_blocker.block
-
-      puts user_blocker.status
-    end
-  end
 end

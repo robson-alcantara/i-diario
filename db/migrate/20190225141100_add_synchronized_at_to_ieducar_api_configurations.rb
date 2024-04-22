@@ -1,4 +1,4 @@
-class AddSynchronizedAtToIeducarApiConfigurations < ActiveRecord::Migration[4.2]
+class AddSynchronizedAtToIeducarApiConfigurations < ActiveRecord::Migration
   def change
     add_column :ieducar_api_configurations, :synchronized_at, :datetime
   end

@@ -1,4 +1,4 @@
-class SetActiveToAllDailyFrequencyStudents < ActiveRecord::Migration[4.2]
+class SetActiveToAllDailyFrequencyStudents < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE daily_frequency_students set active = 't';

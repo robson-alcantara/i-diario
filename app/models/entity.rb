@@ -1,4 +1,4 @@
-class Entity < ApplicationRecord
+class Entity < ActiveRecord::Base
   acts_as_copy_target
 
   cattr_accessor :current

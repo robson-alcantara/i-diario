@@ -1,4 +1,4 @@
-class StopAllStartedSynchronizations < ActiveRecord::Migration[4.2]
+class StopAllStartedSynchronizations < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE ieducar_api_synchronizations SET status = 'completed' WHERE status = 'started';

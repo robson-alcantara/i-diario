@@ -1,4 +1,4 @@
-class AddCurrentDisciplineIdToUsers < ActiveRecord::Migration[4.2]
+class AddCurrentDisciplineIdToUsers < ActiveRecord::Migration
   def change
     add_column :users, :current_discipline_id, :integer
   end

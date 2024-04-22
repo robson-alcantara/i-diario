@@ -1,4 +1,4 @@
-class MoveDescriptiveExamsInInactiveStepsToActiveSteps < ActiveRecord::Migration[4.2]
+class MoveDescriptiveExamsInInactiveStepsToActiveSteps < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE descriptive_exams

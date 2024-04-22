@@ -1,4 +1,4 @@
-class DisciplineLessonPlanClonerForm < ApplicationRecord
+class DisciplineLessonPlanClonerForm < ActiveRecord::Base
   has_no_table
 
   attr_accessor :discipline_lesson_plan_id, :teacher, :entity_id
@@ -11,9 +11,8 @@ class DisciplineLessonPlanClonerForm < ApplicationRecord
     return unless valid?
 
     begin
-      @classrooms = Classroom.where(id: discipline_lesson_plan_item_cloner_form.map(&:classroom_id).uniq)
-      copy_attachments_data = []
       ActiveRecord::Base.transaction do
+        @classrooms = Classroom.where(id: discipline_lesson_plan_item_cloner_form.map(&:classroom_id).uniq)
         discipline_lesson_plan_item_cloner_form.each_with_index do |item, index|
           @current_item_index = index
           new_lesson_plan = discipline_lesson_plan.dup
@@ -42,8 +41,11 @@ class DisciplineLessonPlanClonerForm < ApplicationRecord
             new_lesson_plan.lesson_plan.lesson_plan_attachments << lesson_plan_attachment.dup
           end
           new_lesson_plan.save!
-          copy_attachments_data << {id: new_lesson_plan.id, original_attachments: original_attachments}
+
+          copy_attachments(new_lesson_plan.id, original_attachments)
         end
+
+        return true
       end
     rescue ActiveRecord::RecordInvalid => e
       message = e.to_s
@@ -57,12 +59,8 @@ class DisciplineLessonPlanClonerForm < ApplicationRecord
 
       errors.add(:classroom_id, "Turma #{e.record.lesson_plan.try(:classroom)}: #{message}")
 
-      return false
+      false
     end
-    copy_attachments_data.each do |attachment|
-      copy_attachments(attachment[:id], attachment[:original_attachments])
-    end
-    return true
   end
 
   def set_field(message)

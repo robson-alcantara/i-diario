@@ -1,4 +1,4 @@
-class AddSchoolCalendarClassroomStepsToConceptualExams < ActiveRecord::Migration[4.2]
+class AddSchoolCalendarClassroomStepsToConceptualExams < ActiveRecord::Migration
   def change
     add_reference :conceptual_exams, :school_calendar_classroom_step, index: true, foreign_key: true
   end

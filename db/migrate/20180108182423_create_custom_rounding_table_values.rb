@@ -1,4 +1,4 @@
-class CreateCustomRoundingTableValues < ActiveRecord::Migration[4.2]
+class CreateCustomRoundingTableValues < ActiveRecord::Migration
   def change
     create_table :custom_rounding_table_values do |t|
       t.references :custom_rounding_table, index: true, foreign_key: true

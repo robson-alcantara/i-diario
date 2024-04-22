@@ -1,4 +1,4 @@
-class StandardizeTeachingPlansContents < ActiveRecord::Migration[4.2]
+class StandardizeTeachingPlansContents < ActiveRecord::Migration
   def change
     rename_column :teaching_plans, :content, :old_contents
     TeachingPlan.all.each do |teaching_plan|

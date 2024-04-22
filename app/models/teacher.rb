@@ -1,4 +1,4 @@
-class Teacher < ApplicationRecord
+class Teacher < ActiveRecord::Base
   include Discardable
   acts_as_copy_target
 
@@ -47,7 +47,7 @@ class Teacher < ApplicationRecord
   def self.active_query
     joins_teacher_discipline_classrooms.where(
       active: true
-    ).distinct
+    ).uniq
   end
 
   def self.search(value)
@@ -65,7 +65,7 @@ class Teacher < ApplicationRecord
   def self.by_unity_id(unity_id)
     joins_teacher_discipline_classrooms.where(classrooms: { unity_id: unity_id })
                                        .active
-                                       .distinct
+                                       .uniq
   end
 
   def self.filter_current_teachers_by_year(year)

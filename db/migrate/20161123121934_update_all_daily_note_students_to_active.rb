@@ -1,4 +1,4 @@
-class UpdateAllDailyNoteStudentsToActive < ActiveRecord::Migration[4.2]
+class UpdateAllDailyNoteStudentsToActive < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE daily_note_students set active = 't';

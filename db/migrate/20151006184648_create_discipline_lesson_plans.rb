@@ -1,4 +1,4 @@
-class CreateDisciplineLessonPlans < ActiveRecord::Migration[4.2]
+class CreateDisciplineLessonPlans < ActiveRecord::Migration
   def change
     create_table :discipline_lesson_plans do |t|
       t.references :lesson_plan, index: { unique: true }, null: false

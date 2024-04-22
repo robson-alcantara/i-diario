@@ -1,4 +1,4 @@
-class CreateConceptualExams < ActiveRecord::Migration[4.2]
+class CreateConceptualExams < ActiveRecord::Migration
   def change
     create_table :conceptual_exams do |t|
       t.references :classroom, index: true, null: false, foreign_key: true

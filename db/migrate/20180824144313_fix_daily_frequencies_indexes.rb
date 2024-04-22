@@ -1,4 +1,4 @@
-class FixDailyFrequenciesIndexes < ActiveRecord::Migration[4.2]
+class FixDailyFrequenciesIndexes < ActiveRecord::Migration
   def change
     remove_index :daily_frequencies, :classroom_id
     remove_index :daily_frequencies, :discipline_id

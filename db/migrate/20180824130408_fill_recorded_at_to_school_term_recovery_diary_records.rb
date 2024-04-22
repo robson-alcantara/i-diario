@@ -1,4 +1,4 @@
-class FillRecordedAtToSchoolTermRecoveryDiaryRecords < ActiveRecord::Migration[4.2]
+class FillRecordedAtToSchoolTermRecoveryDiaryRecords < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE school_term_recovery_diary_records

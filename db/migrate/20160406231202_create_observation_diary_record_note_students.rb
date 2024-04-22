@@ -1,4 +1,4 @@
-class CreateObservationDiaryRecordNoteStudents < ActiveRecord::Migration[4.2]
+class CreateObservationDiaryRecordNoteStudents < ActiveRecord::Migration
   def change
     create_table :observation_diary_record_note_students do |t|
       t.references :observation_diary_record_note, null: false

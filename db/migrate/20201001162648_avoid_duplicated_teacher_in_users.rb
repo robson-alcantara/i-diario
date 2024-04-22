@@ -1,4 +1,4 @@
-class AvoidDuplicatedTeacherInUsers < ActiveRecord::Migration[4.2]
+class AvoidDuplicatedTeacherInUsers < ActiveRecord::Migration
   def change
     teacher_ids = User.group(:teacher_id).having('count(teacher_id) > 1').pluck(:teacher_id)
     teacher_ids.each do |teacher_id|

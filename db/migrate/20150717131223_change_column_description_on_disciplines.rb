@@ -1,4 +1,4 @@
-class ChangeColumnDescriptionOnDisciplines < ActiveRecord::Migration[4.2]
+class ChangeColumnDescriptionOnDisciplines < ActiveRecord::Migration
   def change
     change_column :disciplines, :description, :string, limit: 500
   end

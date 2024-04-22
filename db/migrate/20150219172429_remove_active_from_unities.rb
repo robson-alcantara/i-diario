@@ -1,4 +1,4 @@
-class RemoveActiveFromUnities < ActiveRecord::Migration[4.2]
+class RemoveActiveFromUnities < ActiveRecord::Migration
   def change
     remove_column :unities, :active
   end

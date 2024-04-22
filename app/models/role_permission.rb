@@ -1,4 +1,4 @@
-class RolePermission < ApplicationRecord
+class RolePermission < ActiveRecord::Base
   acts_as_copy_target
   audited associated_with: :role, only: [:feature, :permission]
 

@@ -1,4 +1,4 @@
-class CreateDeficiencyStudents < ActiveRecord::Migration[4.2]
+class CreateDeficiencyStudents < ActiveRecord::Migration
   def change
     create_table :deficiency_students do |t|
       t.references :deficiency, index: true, foreign_key: true

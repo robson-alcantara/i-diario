@@ -1,4 +1,4 @@
-class CreateWorkerStates < ActiveRecord::Migration[4.2]
+class CreateWorkerStates < ActiveRecord::Migration
   def change
     create_table :worker_states do |t|
       t.references :user, index: true, foreign_key: true

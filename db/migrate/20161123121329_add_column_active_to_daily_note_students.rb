@@ -1,4 +1,4 @@
-class AddColumnActiveToDailyNoteStudents < ActiveRecord::Migration[4.2]
+class AddColumnActiveToDailyNoteStudents < ActiveRecord::Migration
   def change
     add_column :daily_note_students, :active, :boolean
   end

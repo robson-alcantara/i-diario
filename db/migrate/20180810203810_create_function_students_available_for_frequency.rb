@@ -1,4 +1,4 @@
-class CreateFunctionStudentsAvailableForFrequency < ActiveRecord::Migration[4.2]
+class CreateFunctionStudentsAvailableForFrequency < ActiveRecord::Migration
   def change
     execute <<-SQL
       CREATE OR REPLACE FUNCTION students_available_for_frequency(

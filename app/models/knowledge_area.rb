@@ -1,4 +1,4 @@
-class KnowledgeArea < ApplicationRecord
+class KnowledgeArea < ActiveRecord::Base
   include Discardable
 
   acts_as_copy_target
@@ -18,22 +18,22 @@ class KnowledgeArea < ApplicationRecord
   scope :by_unity, lambda { |unity_id|
     joins(disciplines: { teacher_discipline_classrooms: :classroom }).where(
       classrooms: { unity_id: unity_id }
-    ).distinct
+    ).uniq
   }
   scope :by_teacher, lambda { |teacher_id|
     joins(disciplines: :teacher_discipline_classrooms).where(
       teacher_discipline_classrooms: { teacher_id: teacher_id }
-    ).distinct
+    ).uniq
   }
   scope :by_classroom_id, lambda { |classroom_id|
     joins(disciplines: :teacher_discipline_classrooms).where(
       teacher_discipline_classrooms: { classroom_id: classroom_id }
-    ).distinct
+    ).uniq
   }
   scope :by_grade, lambda { |grade_id|
-    joins(disciplines: { teacher_discipline_classrooms: { classroom: :classrooms_grades } }).where(
-      classrooms_grades: { grade_id: grade_id }
-    ).distinct
+    joins(disciplines: { teacher_discipline_classrooms: :classroom }).where(
+      classrooms: { grade_id: grade_id }
+    ).uniq
   }
   scope :by_discipline_id, ->(discipline_id) { joins(:disciplines).where(disciplines: { id: discipline_id }) }
   scope :ordered, -> { order(arel_table[:description].asc) }

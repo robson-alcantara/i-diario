@@ -1,4 +1,4 @@
-class RemoveUnneededIndexTeacherDisciplineClassroomsOnDisciplineId < ActiveRecord::Migration[4.2]
+class RemoveUnneededIndexTeacherDisciplineClassroomsOnDisciplineId < ActiveRecord::Migration
   def change
     remove_index :teacher_discipline_classrooms, name: "index_teacher_discipline_classrooms_on_discipline_id"
   end

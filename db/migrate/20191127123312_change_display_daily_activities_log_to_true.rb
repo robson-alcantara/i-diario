@@ -1,4 +1,4 @@
-class ChangeDisplayDailyActivitiesLogToTrue < ActiveRecord::Migration[4.2]
+class ChangeDisplayDailyActivitiesLogToTrue < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE general_configurations

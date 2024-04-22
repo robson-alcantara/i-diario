@@ -1,4 +1,4 @@
-class AddSocialNameToStudent < ActiveRecord::Migration[4.2]
+class AddSocialNameToStudent < ActiveRecord::Migration
   def change
     add_column :students, :social_name, :string
   end

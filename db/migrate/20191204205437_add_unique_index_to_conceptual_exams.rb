@@ -1,4 +1,4 @@
-class AddUniqueIndexToConceptualExams < ActiveRecord::Migration[4.2]
+class AddUniqueIndexToConceptualExams < ActiveRecord::Migration
   disable_ddl_transaction!
 
   def change

@@ -1,4 +1,4 @@
-class RevertPolymorphicIndexesOrder < ActiveRecord::Migration[4.2]
+class RevertPolymorphicIndexesOrder < ActiveRecord::Migration
   disable_ddl_transaction!
 
   def self.up

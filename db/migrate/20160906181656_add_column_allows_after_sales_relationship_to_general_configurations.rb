@@ -1,4 +1,4 @@
-class AddColumnAllowsAfterSalesRelationshipToGeneralConfigurations < ActiveRecord::Migration[4.2]
+class AddColumnAllowsAfterSalesRelationshipToGeneralConfigurations < ActiveRecord::Migration
   def change
     add_column :general_configurations, :allows_after_sales_relationship, :string, default: "allows"
   end

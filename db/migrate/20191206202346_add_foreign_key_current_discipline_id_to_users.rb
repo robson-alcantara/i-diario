@@ -1,4 +1,4 @@
-class AddForeignKeyCurrentDisciplineIdToUsers < ActiveRecord::Migration[4.2]
+class AddForeignKeyCurrentDisciplineIdToUsers < ActiveRecord::Migration
   def change
     add_foreign_key :users, :disciplines, column: :current_discipline_id
   end

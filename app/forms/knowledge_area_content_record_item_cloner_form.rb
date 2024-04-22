@@ -1,4 +1,4 @@
-class KnowledgeAreaContentRecordItemClonerForm < ApplicationRecord
+class KnowledgeAreaContentRecordItemClonerForm < ActiveRecord::Base
   has_no_table
 
   attr_accessor :uuid, :knowledge_area_content_record_cloner_form_id, :classroom_id, :record_date

@@ -1,4 +1,4 @@
-class WorkerBatch < ApplicationRecord
+class WorkerBatch < ActiveRecord::Base
   include LifeCycleTimeLoggable
 
   belongs_to :stateable, polymorphic: true

@@ -7,14 +7,13 @@ RSpec.describe ComplementaryExamSettingsFetcher, type: :service do
       :with_classroom_semester_steps
     )
   }
-  let(:classrooms_grade) { create(:classrooms_grade, classroom: classroom) }
   let(:discipline) { create(:discipline) }
   let(:step) { classroom.calendar.classroom_steps.first }
   let!(:complementary_exam_setting) {
     create(
       :complementary_exam_setting,
       :with_teacher_discipline_classroom,
-      grade_ids: [classrooms_grade.grade_id]
+      grade_ids: [classroom.grade_id]
     )
   }
   let(:complementary_exam) {

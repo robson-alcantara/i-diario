@@ -1,4 +1,4 @@
-class User < ApplicationRecord
+class User < ActiveRecord::Base
   acts_as_copy_target
 
   audited allow_mass_assignment: true,
@@ -21,7 +21,6 @@ class User < ApplicationRecord
 
   after_save :update_fullname_tokens
   before_save :remove_spaces_from_name
-  after_validation :status_changed
 
   before_destroy :clear_allocation
   before_validation :verify_receive_news_fields
@@ -68,11 +67,13 @@ class User < ApplicationRecord
   validates_associated :user_roles
 
   validate :valid_password
+  validate :status_changed
   validate :email_reserved_for_student
   validate :presence_of_email_or_cpf
   validate :validate_receive_news_fields, if: :has_to_validate_receive_news_fields?
   validate :can_not_be_a_cpf
   validate :can_not_be_an_email
+  validate :status_changed
 
   scope :ordered, -> { order(arel_table[:fullname].asc) }
   scope :email_ordered, -> { order(email: :asc) }
@@ -113,8 +114,7 @@ class User < ApplicationRecord
       'Status',
       'Aluno vinculado',
       'Professor Vinculado',
-      'Permissões',
-      'Data de expiração'
+      'Permissões'
     ]
 
     CSV.generate(headers: true) do |csv|
@@ -131,8 +131,7 @@ class User < ApplicationRecord
           I18n.t("enumerations.user_status.#{user.status}"),
           user.student,
           user.teacher,
-          user.user_roles.map { |user_role| [user_role&.role&.name, user_role&.unity&.name].compact },
-          user.expiration_date&.strftime("%d/%m/%Y")
+          user.user_roles.map { |user_role| [user_role&.role&.name, user_role&.unity&.name].compact }
         ]
       end
     end
@@ -203,7 +202,7 @@ class User < ApplicationRecord
   end
 
   def update_last_activity_at
-    self.last_activity_at = Date.current
+    update_column :last_activity_at, Date.current
   end
 
   def can_show?(feature)
@@ -417,10 +416,6 @@ class User < ApplicationRecord
 
   def access_levels
     @access_levels ||= roles.map(&:access_level).uniq
-  end
-
-  def is_admin_email?
-    email.eql?(Rails.application.secrets.admin_email)
   end
 
   protected

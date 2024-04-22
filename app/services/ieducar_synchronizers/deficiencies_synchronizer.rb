@@ -7,8 +7,6 @@ class DeficienciesSynchronizer < BaseSynchronizer
         )['deficiencias']
       )
     )
-  rescue IeducarApi::Base::ApiError => error
-    synchronization.mark_as_error!(error.message)
   end
 
   private
@@ -20,8 +18,7 @@ class DeficienciesSynchronizer < BaseSynchronizer
   end
 
   def update_deficiencies(deficiencies)
-    unity_api_codes = unity_api_code.split(',')
-    self.unity_id = unity_api_codes.map { |code| unity(code).try(:id) }
+    self.unity_id = unity(unity_api_code).try(:id)
 
     deficiencies.each do |deficiency_record|
       Deficiency.with_discarded.find_or_initialize_by(api_code: deficiency_record.id).tap do |deficiency|
@@ -58,7 +55,6 @@ class DeficienciesSynchronizer < BaseSynchronizer
         student_id: student_id,
         unity_id: unity_id
       ).tap do |deficiency_student|
-        deficiency_student.unity_id = student_unities(student_id)[0] if deficiency_student.unity_id.nil?
         deficiency_student.save! if deficiency_student.changed?
         deficiency_student.discard_or_undiscard(false)
       end
@@ -82,7 +78,7 @@ class DeficienciesSynchronizer < BaseSynchronizer
   def deficiency_students_to_discard(deficiency_id, student_ids)
     DeficiencyStudent.with_discarded
                      .by_deficiency_id(deficiency_id)
-                     .by_unity_id([unity_id, nil].flatten)
+                     .by_unity_id(unity_id)
                      .where.not(student_id: student_ids)
   end
 
@@ -94,13 +90,5 @@ class DeficienciesSynchronizer < BaseSynchronizer
       student_id: student_id,
       unity_id: unity_id
     )
-  end
-
-  def student_unities(student_id)
-    Unity.joins(classrooms: [student_enrollment_classrooms: :student_enrollment])
-         .where(student_enrollments: { student_id: student_id, active: 1 })
-         .order('student_enrollment_classrooms.joined_at desc')
-         .ids
-         .uniq
   end
 end

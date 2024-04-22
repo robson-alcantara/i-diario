@@ -1,4 +1,4 @@
-class CreateTeacherProfiles < ActiveRecord::Migration[4.2]
+class CreateTeacherProfiles < ActiveRecord::Migration
   def change
     create_table :teacher_profiles do |t|
       t.integer :user_id

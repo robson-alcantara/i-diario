@@ -64,6 +64,6 @@ class ContentsRecordFetcher
   end
 
   def yearly_school_term_type_id
-    SchoolTermType.where("description = ? OR description = ?", 'Anual', 'Anual (1 etapa)').pluck(:id)
+    SchoolTermType.find_by(description: 'Anual').id
   end
 end

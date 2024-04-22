@@ -1,4 +1,4 @@
-class CreateFunctionCheckToKeepUniqueDescriptiveExams < ActiveRecord::Migration[4.2]
+class CreateFunctionCheckToKeepUniqueDescriptiveExams < ActiveRecord::Migration
   def change
     execute <<-SQL
       CREATE OR REPLACE FUNCTION check_descriptive_exam_is_unique(

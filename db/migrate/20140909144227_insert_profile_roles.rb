@@ -1,4 +1,4 @@
-class InsertProfileRoles < ActiveRecord::Migration[4.2]
+class InsertProfileRoles < ActiveRecord::Migration
   def change
     execute <<-SQL
       DELETE FROM profiles;

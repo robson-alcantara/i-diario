@@ -1,4 +1,4 @@
-class CreateCustomRoundingTablesCourses < ActiveRecord::Migration[4.2]
+class CreateCustomRoundingTablesCourses < ActiveRecord::Migration
   def change
     create_table :custom_rounding_tables_courses do |t|
       t.belongs_to :custom_rounding_table

@@ -1,4 +1,4 @@
-class UpdateStudentEnrollmentClassrooms < ActiveRecord::Migration[4.2]
+class UpdateStudentEnrollmentClassrooms < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE student_enrollment_classrooms

@@ -1,4 +1,4 @@
-class UpdateClassroomIdToTeacherDisciplineClassrooms < ActiveRecord::Migration[4.2]
+class UpdateClassroomIdToTeacherDisciplineClassrooms < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE teacher_discipline_classrooms

@@ -1,4 +1,4 @@
-class CreateCustomRoundingTablesGrades < ActiveRecord::Migration[4.2]
+class CreateCustomRoundingTablesGrades < ActiveRecord::Migration
   def change
     create_table :custom_rounding_tables_grades, id: false do |t|
       t.belongs_to :custom_rounding_table

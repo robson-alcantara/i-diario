@@ -1,4 +1,4 @@
-class AddLabelColorToDiscipline < ActiveRecord::Migration[4.2]
+class AddLabelColorToDiscipline < ActiveRecord::Migration
   def change
     add_column :disciplines, :label_color, :string
   end

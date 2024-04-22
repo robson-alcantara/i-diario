@@ -1,4 +1,4 @@
-class ChangeDefaultValueForUserStatus < ActiveRecord::Migration[4.2]
+class ChangeDefaultValueForUserStatus < ActiveRecord::Migration
   def change
     change_column_default(:users, :status, 'active')
   end

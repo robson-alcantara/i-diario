@@ -1,4 +1,4 @@
-class AddExpirationDateToUsers < ActiveRecord::Migration[4.2]
+class AddExpirationDateToUsers < ActiveRecord::Migration
   def change
     add_column :users, :expiration_date, :date
   end

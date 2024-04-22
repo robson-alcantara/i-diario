@@ -1,4 +1,4 @@
-class AddDiscardedAtToObservationDiaryRecord < ActiveRecord::Migration[4.2]
+class AddDiscardedAtToObservationDiaryRecord < ActiveRecord::Migration
   def up
     add_column :observation_diary_records, :discarded_at, :datetime
     add_index :observation_diary_records, :discarded_at

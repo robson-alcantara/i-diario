@@ -1,4 +1,4 @@
-class SchoolCalendarClassroomStep < ApplicationRecord
+class SchoolCalendarClassroomStep < ActiveRecord::Base
   include SchoolTermable
 
   audited
@@ -46,15 +46,7 @@ class SchoolCalendarClassroomStep < ApplicationRecord
 
     return false unless step_from_date.eql?(self)
 
-    school_calendar.school_day?(date, classroom.grade_ids, classroom_id)
-  end
-
-  def school_calendar_day_allows_entry?(date)
-    step_from_date = school_calendar_classroom.classroom_step(date)
-
-    return false unless step_from_date.eql?(self)
-
-    school_calendar.day_allows_entry?(date, classroom.grade_ids, classroom_id)
+    school_calendar.school_day?(date, classroom.grade_ids, classroom)
   end
 
   def first_school_calendar_date

@@ -1,4 +1,4 @@
-class RemoveDailyFrequencyStudentIndex < ActiveRecord::Migration[4.2]
+class RemoveDailyFrequencyStudentIndex < ActiveRecord::Migration
   disable_ddl_transaction!
 
   def change

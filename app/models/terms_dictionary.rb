@@ -1,4 +1,4 @@
-class TermsDictionary < ApplicationRecord
+class TermsDictionary < ActiveRecord::Base
   acts_as_copy_target
   audited
 

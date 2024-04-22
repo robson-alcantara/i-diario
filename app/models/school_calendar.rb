@@ -1,4 +1,4 @@
-class SchoolCalendar < ApplicationRecord
+class SchoolCalendar < ActiveRecord::Base
   acts_as_copy_target
 
   before_validation :self_assign_to_steps
@@ -51,10 +51,6 @@ class SchoolCalendar < ApplicationRecord
 
   def school_day?(date, grade_id = nil, classroom_id = nil, discipline_id = nil)
     school_day_checker(date, grade_id, classroom_id, discipline_id).school_day?
-  end
-
-  def day_allows_entry?(date, grade_id = nil, classroom_id = nil, discipline_id = nil)
-    school_day_checker(date, grade_id, classroom_id, discipline_id).day_allows_entry?
   end
 
   def step(date)

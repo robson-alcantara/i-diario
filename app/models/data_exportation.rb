@@ -1,4 +1,4 @@
-class DataExportation < ApplicationRecord
+class DataExportation < ActiveRecord::Base
   has_enumeration_for :backup_type, with: BackupTypes, create_helpers: true
   has_enumeration_for :backup_status, with: BackupStatus, create_helpers: true
 

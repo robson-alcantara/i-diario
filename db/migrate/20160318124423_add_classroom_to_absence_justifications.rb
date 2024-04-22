@@ -1,4 +1,4 @@
-class AddClassroomToAbsenceJustifications < ActiveRecord::Migration[4.2]
+class AddClassroomToAbsenceJustifications < ActiveRecord::Migration
   def change
     add_reference :absence_justifications, :classroom, index: true, foreign_key: true
   end

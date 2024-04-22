@@ -1,4 +1,4 @@
-class AdjustStudentsUsersWithoutStudentId < ActiveRecord::Migration[4.2]
+class AdjustStudentsUsersWithoutStudentId < ActiveRecord::Migration
   def change
     User.joins(user_roles: :role)
         .joins(:audits)

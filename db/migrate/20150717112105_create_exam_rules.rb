@@ -1,4 +1,4 @@
-class CreateExamRules < ActiveRecord::Migration[4.2]
+class CreateExamRules < ActiveRecord::Migration
   def change
     create_table :exam_rules do |t|
       t.string :api_code

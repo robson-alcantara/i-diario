@@ -75,10 +75,12 @@ class StudentNotesQuery
                     .joins(:transfer_note)
                     .merge(
                       TransferNote.by_transfer_date_between(
-                        step_start_at,
-                        step_end_at
+                        start_at(student_enrollment_classroom),
+                        end_at(student_enrollment_classroom)
                       )
-                    ).where.not(transfer_note: nil)
+                    ).where.not(
+      transfer_note: nil
+    )
   end
 
   def recovery_lowest_note_in_step(step)

@@ -1,4 +1,4 @@
-class PopulateSchoolTermTypeSteps < ActiveRecord::Migration[4.2]
+class PopulateSchoolTermTypeSteps < ActiveRecord::Migration
   def change
     SchoolTermType.where.not(id: 1).each do |school_term_type|
       1.upto(school_term_type.steps_number) do |step_number|

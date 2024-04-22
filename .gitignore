@@ -22,13 +22,14 @@ config/puma.rb
 /public/422.html
 /public/relatorios/*
 !/public/relatorios/.keep
+.idea
 
 ## Environment normalisation:
 /.bundle
 /vendor/bundle
 
 # these should all be checked in to normalise the environment:
-# Gemfile.lock, .ruby-version, .ruby-gemset
+# Gemfile.lock, .ruby-gemset
 Gemfile.lock
 vendor/assets/javascripts/plugins.js
 
@@ -37,7 +38,6 @@ vendor/assets/javascripts/plugins.js
 *.swm
 
 # rbenv ruby version file
-.ruby-version
 .ruby-gemset
 
 db/structure.sql
@@ -50,3 +50,19 @@ Gemfile.plugins
 
 # Setup
 .setup
+
+# Docker
+docker-compose.override.yml
+
+# Packages
+/packages/*
+
+/public/packs
+/public/packs-test
+/node_modules
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
+
+# Carrierwave
+config/initializers/custom_carrierwave.rb

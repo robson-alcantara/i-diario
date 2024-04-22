@@ -1,4 +1,4 @@
-class AdjustFunctionCheckToKeepUniqueConceptualExamsToUseStepNumber < ActiveRecord::Migration[4.2]
+class AdjustFunctionCheckToKeepUniqueConceptualExamsToUseStepNumber < ActiveRecord::Migration
   def change
     execute <<-SQL
       DROP FUNCTION check_conceptual_exam_is_unique(INT, INT, INT, DATE);

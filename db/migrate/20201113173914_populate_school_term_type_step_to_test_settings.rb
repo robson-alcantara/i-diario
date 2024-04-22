@@ -1,4 +1,4 @@
-class PopulateSchoolTermTypeStepToTestSettings < ActiveRecord::Migration[4.2]
+class PopulateSchoolTermTypeStepToTestSettings < ActiveRecord::Migration
   def change
     TestSetting.where.not(school_term: '').each do |test_setting|
       school_term = test_setting.school_term

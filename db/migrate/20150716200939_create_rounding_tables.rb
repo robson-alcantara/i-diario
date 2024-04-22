@@ -1,4 +1,4 @@
-class CreateRoundingTables < ActiveRecord::Migration[4.2]
+class CreateRoundingTables < ActiveRecord::Migration
   def change
     create_table :rounding_tables do |t|
       t.string :api_code

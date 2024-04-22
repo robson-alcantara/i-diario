@@ -1,4 +1,4 @@
-class PopulateFieldClassroomApiCodeInSchoolCalenadarClassrooms < ActiveRecord::Migration[4.2]
+class PopulateFieldClassroomApiCodeInSchoolCalenadarClassrooms < ActiveRecord::Migration
   def change
     school_calendar_classrooms = SchoolCalendarClassroom.joins(:classroom)
                                                         .select(

@@ -1,4 +1,4 @@
-class SchoolTermTypeStep < ApplicationRecord
+class SchoolTermTypeStep < ActiveRecord::Base
   include Discardable
   include SchoolCalendarFilterable
 

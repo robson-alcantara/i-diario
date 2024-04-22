@@ -1,4 +1,4 @@
-class CreateClassrooms < ActiveRecord::Migration[4.2]
+class CreateClassrooms < ActiveRecord::Migration
   def change
     create_table :classrooms do |t|
       t.string :api_code

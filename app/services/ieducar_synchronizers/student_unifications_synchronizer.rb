@@ -7,8 +7,6 @@ class StudentUnificationsSynchronizer < BaseSynchronizer
         )['unificacoes']
       )
     )
-  rescue IeducarApi::Base::ApiError => error
-    synchronization.mark_as_error!(error.message)
   end
 
   private
@@ -26,11 +24,10 @@ class StudentUnificationsSynchronizer < BaseSynchronizer
       next if student.blank?
 
       StudentUnification.find_or_initialize_by(
-        api_code: unification.id
+        student_id: student.id
       ).tap do |student_unification|
         student_unification.unified_at = unification.created_at
         student_unification.active = unification.active
-        student_unification.student_id = student.id
 
         if student_unification.changed?
           new_record = student_unification.new_record?

@@ -94,8 +94,7 @@ class SchoolCalendarEventBatchesController < ApplicationController
       1.second,
       current_entity.id,
       school_calendar_event_batch_id,
-      current_user.id,
-      action_name
+      current_user.id
     )
   end
 
@@ -104,12 +103,7 @@ class SchoolCalendarEventBatchesController < ApplicationController
       1.second,
       current_entity.id,
       school_calendar_event_batch_id,
-      current_user.id,
-      action_name
+      current_user.id
     )
-  end
-
-  def school_calendar_event_batch
-    @school_calendar_event_batch ||= SchoolCalendarEventBatch.find(params[:id])
   end
 end

@@ -1,4 +1,4 @@
-class RemoveSpacesFromName < ActiveRecord::Migration[4.2]
+class RemoveSpacesFromName < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE users SET first_name = trim(regexp_replace(first_name, '\s+', ' ', 'g')),

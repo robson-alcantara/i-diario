@@ -1,4 +1,4 @@
-class FixPhoneMasks < ActiveRecord::Migration[4.2]
+class FixPhoneMasks < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE users SET phone = REGEXP_REPLACE(users.phone, '-', '', 'g');

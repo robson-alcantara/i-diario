@@ -1,4 +1,4 @@
-class DropUniqueTeacherDisciplineClassroomsIdx < ActiveRecord::Migration[4.2]
+class DropUniqueTeacherDisciplineClassroomsIdx < ActiveRecord::Migration
   disable_ddl_transaction!
 
   def up

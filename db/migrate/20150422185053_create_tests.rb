@@ -1,4 +1,4 @@
-class CreateTests < ActiveRecord::Migration[4.2]
+class CreateTests < ActiveRecord::Migration
   def change
     create_table :tests do |t|
       t.references :unity, index: true, null: false

@@ -1,4 +1,4 @@
-class CreateActiveSearch < ActiveRecord::Migration[4.2]
+class CreateActiveSearch < ActiveRecord::Migration
   def change
     create_table :active_searches do |t|
       t.belongs_to :student_enrollment

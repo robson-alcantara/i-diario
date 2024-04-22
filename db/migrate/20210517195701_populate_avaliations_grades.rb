@@ -1,4 +1,4 @@
-class PopulateAvaliationsGrades < ActiveRecord::Migration[4.2]
+class PopulateAvaliationsGrades < ActiveRecord::Migration
   def change
     execute <<-SQL
       DO $$

@@ -1,4 +1,4 @@
-class ContentRecordsContent < ApplicationRecord
+class ContentRecordsContent < ActiveRecord::Base
   include Audit
   audited except: [:content_record_id],
           allow_mass_assignment: true,

@@ -1,4 +1,4 @@
-class SchoolCalendarEventBatch < ApplicationRecord
+class SchoolCalendarEventBatch < ActiveRecord::Base
   audited
 
   has_many :school_calendar_events, dependent: :nullify, foreign_key: 'batch_id'

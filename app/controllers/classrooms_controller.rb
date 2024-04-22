@@ -24,8 +24,6 @@ class ClassroomsController < ApplicationController
   end
 
   def multi_grade
-    return false unless current_user.current_role_is_admin_or_employee?
-
     render json: current_user_classroom.multi_grade?
   end
 

@@ -1,4 +1,4 @@
-class RemoveUnneededIndexOnComplementaryExamId < ActiveRecord::Migration[4.2]
+class RemoveUnneededIndexOnComplementaryExamId < ActiveRecord::Migration
   def up
     remove_index :complementary_exam_students, name: "index_on_complementary_exam_id"
   end

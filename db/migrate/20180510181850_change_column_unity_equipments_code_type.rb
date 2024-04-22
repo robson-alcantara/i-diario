@@ -1,4 +1,4 @@
-class ChangeColumnUnityEquipmentsCodeType < ActiveRecord::Migration[4.2]
+class ChangeColumnUnityEquipmentsCodeType < ActiveRecord::Migration
   def change
     change_column :unity_equipments, :code, :string
   end

@@ -1,4 +1,4 @@
-class AddCurrentUnityIdToUsers < ActiveRecord::Migration[4.2]
+class AddCurrentUnityIdToUsers < ActiveRecord::Migration
   def change
     add_column :users, :current_unity_id, :integer
   end

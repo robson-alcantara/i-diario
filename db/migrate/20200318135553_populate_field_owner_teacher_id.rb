@@ -1,4 +1,4 @@
-class PopulateFieldOwnerTeacherId < ActiveRecord::Migration[4.2]
+class PopulateFieldOwnerTeacherId < ActiveRecord::Migration
   def change
     execute <<-SQL
       DO $$

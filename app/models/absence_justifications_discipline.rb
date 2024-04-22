@@ -1,4 +1,4 @@
-class AbsenceJustificationsDiscipline < ApplicationRecord
+class AbsenceJustificationsDiscipline < ActiveRecord::Base
   audited
 
   belongs_to :discipline

@@ -17,7 +17,6 @@ RSpec.describe AbsenceAdjustmentsService, type: :service do
           :classroom,
           :with_classroom_semester_steps,
           :with_teacher_discipline_classroom,
-          :score_type_numeric,
           teacher: teacher,
           discipline: discipline,
           unity: unities.first
@@ -37,7 +36,6 @@ RSpec.describe AbsenceAdjustmentsService, type: :service do
       let!(:daily_frequency_2) {
         create(
           :daily_frequency,
-          :by_discipline,
           unity: classroom.unity,
           school_calendar: school_calendar,
           classroom: classroom,
@@ -48,16 +46,14 @@ RSpec.describe AbsenceAdjustmentsService, type: :service do
 
       it 'needs to adjust to be general absence' do
         expect(subject.daily_frequencies_by_type(FrequencyTypes::GENERAL).exists?).to be true
-        FrequencyTypeDefiner.any_instance.stub(:define_frequency_type).and_return(FrequencyTypes::GENERAL)
         subject.adjust
         expect(subject.daily_frequencies_by_type(FrequencyTypes::GENERAL).exists?).to be false
       end
 
       it 'removes others daily_frequencies' do
-        FrequencyTypeDefiner.any_instance.stub(:define_frequency_type).and_return(FrequencyTypes::GENERAL)
         expect(DailyFrequency.count).to be(2)
         subject.adjust
-        expect(DailyFrequency.count).to be(0)
+        expect(DailyFrequency.count).to be(1)
       end
     end
 
@@ -67,7 +63,7 @@ RSpec.describe AbsenceAdjustmentsService, type: :service do
           :classroom,
           :with_classroom_semester_steps,
           :with_teacher_discipline_classroom,
-          :by_discipline_create_rule,
+          :by_discipline,
           teacher: teacher,
           unity: unities.first
         )
@@ -110,7 +106,6 @@ RSpec.describe AbsenceAdjustmentsService, type: :service do
           :classroom,
           :with_classroom_semester_steps,
           :with_teacher_discipline_classroom_specific,
-          :score_type_numeric,
           teacher: teacher,
           unity: unities.first
         )

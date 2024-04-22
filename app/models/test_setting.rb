@@ -1,4 +1,4 @@
-class TestSetting < ApplicationRecord
+class TestSetting < ActiveRecord::Base
   acts_as_copy_target
 
   audited

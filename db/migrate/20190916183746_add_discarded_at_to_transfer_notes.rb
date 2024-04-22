@@ -1,4 +1,4 @@
-class AddDiscardedAtToTransferNotes < ActiveRecord::Migration[4.2]
+class AddDiscardedAtToTransferNotes < ActiveRecord::Migration
   def change
     add_column :transfer_notes, :discarded_at, :datetime
   end

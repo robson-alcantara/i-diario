@@ -1,4 +1,4 @@
-class AdjustFunctionStepsByClassroomToUseStepNumber < ActiveRecord::Migration[4.2]
+class AdjustFunctionStepsByClassroomToUseStepNumber < ActiveRecord::Migration
   def change
     execute <<-SQL
       DROP FUNCTION steps_by_classroom(INT);

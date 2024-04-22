@@ -1,4 +1,4 @@
-class RemoveStudentIdFromAbsenceJustification < ActiveRecord::Migration[4.2]
+class RemoveStudentIdFromAbsenceJustification < ActiveRecord::Migration
   def change
     remove_column :absence_justifications, :student_id, :integer
   end

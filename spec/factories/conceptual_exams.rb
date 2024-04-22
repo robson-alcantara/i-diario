@@ -2,7 +2,7 @@ FactoryGirl.define do
   factory :conceptual_exam do
     student
 
-    association :classroom, factory: [:classroom, :score_type_concept_create_rule, :with_classroom_semester_steps]
+    association :classroom, factory: [:classroom, :score_type_concept, :with_classroom_semester_steps]
 
     unity_id { classroom.unity_id }
 
@@ -10,7 +10,6 @@ FactoryGirl.define do
       discipline nil
       teacher nil
       student_enrollment nil
-      grade nil
     end
 
     after(:build) do |conceptual_exam|
@@ -32,14 +31,12 @@ FactoryGirl.define do
         teacher ||= evaluator.teacher || create(:teacher)
         conceptual_exam.teacher_id = teacher.id if conceptual_exam.teacher_id.blank?
         discipline = evaluator.discipline || create(:discipline)
-        grade = evaluator.grade || create(:grade)
 
         create(
           :teacher_discipline_classroom,
           classroom: conceptual_exam.classroom,
           discipline: discipline,
-          teacher: teacher,
-          grade: grade
+          teacher: teacher
         )
       end
     end
@@ -48,10 +45,10 @@ FactoryGirl.define do
       after(:build) do |conceptual_exam, evaluator|
         student_enrollment = evaluator.student_enrollment
         student_enrollment ||= create(:student_enrollment, student: conceptual_exam.student)
-        classrooms_grade = create(:classrooms_grade, :score_type_concept, classroom: conceptual_exam.classroom)
+
         create(
           :student_enrollment_classroom,
-          classrooms_grade: classrooms_grade,
+          classroom: conceptual_exam.classroom,
           student_enrollment: student_enrollment
         )
       end
@@ -66,16 +63,5 @@ FactoryGirl.define do
         )
       end
     end
-
-    trait :without_value do
-      after(:build) do |conceptual_exam, evaluator|
-        discipline = evaluator.discipline || create(:discipline)
-
-        conceptual_exam.conceptual_exam_values.build(
-          attributes_for(:conceptual_exam_value, discipline_id: discipline.id, value: nil)
-        )
-      end
-    end
-
   end
 end

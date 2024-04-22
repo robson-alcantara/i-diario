@@ -1,4 +1,4 @@
-class RemoveDuplicatedColumnsFromDailyNotes < ActiveRecord::Migration[4.2]
+class RemoveDuplicatedColumnsFromDailyNotes < ActiveRecord::Migration
   def change
     remove_column :daily_notes, :unity_id
     remove_column :daily_notes, :classroom_id

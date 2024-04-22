@@ -1,4 +1,4 @@
-class AddThematicUnitToDisciplineLessonPlans < ActiveRecord::Migration[4.2]
+class AddThematicUnitToDisciplineLessonPlans < ActiveRecord::Migration
   def change
     add_column :discipline_lesson_plans, :thematic_unit, :string
   end

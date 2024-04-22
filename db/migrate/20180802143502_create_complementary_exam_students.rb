@@ -1,4 +1,4 @@
-class CreateComplementaryExamStudents < ActiveRecord::Migration[4.2]
+class CreateComplementaryExamStudents < ActiveRecord::Migration
   def change
     create_table :complementary_exam_students do |t|
       t.decimal :score, null: true

@@ -22,8 +22,6 @@ class LessonPlanAttachmentCopier
         begin
           s3_handler = AwsS3HandlerService.new
           s3_handler.copy_object("#{prefix}/#{original_id}/#{filename}", "#{prefix}/#{new_id}/#{filename}", @new_lesson_plan )
-        rescue Aws::S3::Errors::NoSuchKey
-          attachment.destroy
         rescue StandardError => error
           Honeybadger.notify(error)
           next

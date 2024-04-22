@@ -1,4 +1,4 @@
-class AddUniqueIndexOnDailyNoteStudents < ActiveRecord::Migration[4.2]
+class AddUniqueIndexOnDailyNoteStudents < ActiveRecord::Migration
   def change
     #FIXME Não utilizar model em migration
     daily_note_students = DailyNoteStudent.find_by_sql(

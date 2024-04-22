@@ -1,4 +1,4 @@
-class ObservationDiaryRecordNoteStudent < ApplicationRecord
+class ObservationDiaryRecordNoteStudent < ActiveRecord::Base
   include Discardable
   include Audit
 

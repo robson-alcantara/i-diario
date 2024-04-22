@@ -1,4 +1,4 @@
-class CreateStudentEnrollmentClassrooms < ActiveRecord::Migration[4.2]
+class CreateStudentEnrollmentClassrooms < ActiveRecord::Migration
   def change
     create_table :student_enrollment_classrooms do |t|
       t.string :api_code

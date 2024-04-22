@@ -11,7 +11,6 @@ class Grade < ActiveRecord::Base
   has_many :unity_discipline_grades
   has_many :disciplines, through: :unity_discipline_grades
   has_many :mvw_infrequency_tracking_classrooms
-  has_many :teacher_discipline_classrooms, dependent: :destroy
 
   has_and_belongs_to_many :custom_rounding_tables
 
@@ -27,7 +26,7 @@ class Grade < ActiveRecord::Base
   validates :api_code, uniqueness: true
 
   def self.by_unity(unity)
-    joins(:classrooms).where(classrooms: { unity_id: unity }).distinct
+    joins(:classrooms).where(classrooms: { unity_id: unity }).uniq
   end
 
   def self.by_teacher(teacher)
@@ -37,7 +36,7 @@ class Grade < ActiveRecord::Base
           .join_sources
       )
       .where(TeacherDisciplineClassroom.arel_table[:teacher_id].eq(teacher))
-      .distinct
+      .uniq
   end
 
   def self.by_year(year)

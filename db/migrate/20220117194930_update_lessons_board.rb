@@ -1,4 +1,4 @@
-class UpdateLessonsBoard < ActiveRecord::Migration[4.2]
+class UpdateLessonsBoard < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE lessons_boards

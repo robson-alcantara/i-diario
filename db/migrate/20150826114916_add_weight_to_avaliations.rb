@@ -1,4 +1,4 @@
-class AddWeightToAvaliations < ActiveRecord::Migration[4.2]
+class AddWeightToAvaliations < ActiveRecord::Migration
   def change
     add_column :avaliations, :weight, :decimal, null: true
   end

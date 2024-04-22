@@ -1,12 +1,6 @@
 class TeacherUnificationsSynchronizer < BaseSynchronizer
   def synchronize!
-    update_teacher_unifications(
-      HashDecorator.new(
-        api.fetch(ignore_modified: true)['unificacoes']
-      )
-    )
-  rescue IeducarApi::Base::ApiError => error
-    synchronization.mark_as_error!(error.message)
+    update_teacher_unifications(HashDecorator.new(api.fetch(ignore_modified: true)['unificacoes']))
   end
 
   private

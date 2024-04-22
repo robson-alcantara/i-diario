@@ -1,4 +1,4 @@
-class UniqueDailyFrequencyStudent < ApplicationRecord
+class UniqueDailyFrequencyStudent < ActiveRecord::Base
   audited
 
   belongs_to :student

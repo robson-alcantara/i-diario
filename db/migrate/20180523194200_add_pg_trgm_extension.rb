@@ -1,4 +1,4 @@
-class AddPgTrgmExtension < ActiveRecord::Migration[4.2]
+class AddPgTrgmExtension < ActiveRecord::Migration
   def change
     execute <<-SQL
       CREATE EXTENSION pg_trgm;

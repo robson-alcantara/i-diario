@@ -1,4 +1,4 @@
-class CreateStudentsUsers < ActiveRecord::Migration[4.2]
+class CreateStudentsUsers < ActiveRecord::Migration
   def change
     create_table :students_users, id: false do |t|
       t.integer :student_id, null: false

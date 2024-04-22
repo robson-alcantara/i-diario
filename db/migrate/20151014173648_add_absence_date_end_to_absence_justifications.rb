@@ -1,4 +1,4 @@
-class AddAbsenceDateEndToAbsenceJustifications < ActiveRecord::Migration[4.2]
+class AddAbsenceDateEndToAbsenceJustifications < ActiveRecord::Migration
   def change
     add_column :absence_justifications, :absence_date_end, :date
 

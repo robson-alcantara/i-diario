@@ -1,4 +1,4 @@
-class RemoveColumnSupportFreshdeskFromGeneralConfigurations < ActiveRecord::Migration[4.2]
+class RemoveColumnSupportFreshdeskFromGeneralConfigurations < ActiveRecord::Migration
   def up
     remove_column :general_configurations, :support_freshdesk
   end

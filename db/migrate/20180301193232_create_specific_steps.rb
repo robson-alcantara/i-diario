@@ -1,4 +1,4 @@
-class CreateSpecificSteps < ActiveRecord::Migration[4.2]
+class CreateSpecificSteps < ActiveRecord::Migration
   def change
     create_table :specific_steps do |t|
       t.references :classroom, index: true, foreign_key: true

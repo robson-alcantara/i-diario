@@ -1,4 +1,4 @@
-class AddUniqueIndexToUserLogin < ActiveRecord::Migration[4.2]
+class AddUniqueIndexToUserLogin < ActiveRecord::Migration
   def change
     add_index :users, :login, unique: true, where: "COALESCE(login, '') <> ''"
   end

@@ -1,4 +1,4 @@
-class AddEntityIdToWorkerBatch < ActiveRecord::Migration[4.2]
+class AddEntityIdToWorkerBatch < ActiveRecord::Migration
   def change
     add_column :worker_batches, :entity_id, :integer
   end

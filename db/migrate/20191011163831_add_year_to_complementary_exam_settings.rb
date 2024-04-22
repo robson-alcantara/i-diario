@@ -1,4 +1,4 @@
-class AddYearToComplementaryExamSettings < ActiveRecord::Migration[4.2]
+class AddYearToComplementaryExamSettings < ActiveRecord::Migration
   def change
     add_column :complementary_exam_settings, :year, :integer
   end

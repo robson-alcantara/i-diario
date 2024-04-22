@@ -1,4 +1,4 @@
-class ObservationDiaryRecord < ApplicationRecord
+class ObservationDiaryRecord < ActiveRecord::Base
   include Discardable
   include Audit
   include ColumnsLockable
@@ -23,7 +23,6 @@ class ObservationDiaryRecord < ApplicationRecord
   belongs_to :discipline
   has_many :notes, class_name: 'ObservationDiaryRecordNote', dependent: :destroy
   has_many :observation_diary_record_attachments, dependent: :destroy
-  has_many :students, through: :notes
 
   accepts_nested_attributes_for :observation_diary_record_attachments, allow_destroy: true
   accepts_nested_attributes_for :notes, allow_destroy: true
@@ -35,14 +34,14 @@ class ObservationDiaryRecord < ApplicationRecord
   scope :by_classroom, -> classroom_ids { where(classroom_id: classroom_ids) }
   scope :by_discipline, -> discipline_ids { where(discipline_id: discipline_ids) }
   scope :by_date, -> date { where(date: date.to_date) }
-  scope :by_student_id, -> student_id { joins(:notes).merge(ObservationDiaryRecordNote.by_student_id(student_id)) }
   scope :ordered, -> { order(date: :desc) }
 
   validates_date :date
   validates :school_calendar, presence: true
   validates :teacher, presence: true
   validates :classroom, presence: true
-  validates :discipline, presence: true, on: :create
+  validates :discipline, presence: true, if: :require_discipline?
+  validates :discipline, absence: true, unless: :require_discipline?
   validates(
     :date,
     presence: true,
@@ -67,6 +66,15 @@ class ObservationDiaryRecord < ApplicationRecord
 
   def self_assign_to_notes
     notes.each { |note| note.observation_diary_record = self }
+  end
+
+  def require_discipline?
+    return unless classroom && teacher
+
+    frequency_type_definer = FrequencyTypeDefiner.new(classroom, teacher, year: classroom.year)
+    frequency_type_definer.define!
+
+    frequency_type_definer.frequency_type == FrequencyTypes::BY_DISCIPLINE
   end
 
   def valid_for_destruction?

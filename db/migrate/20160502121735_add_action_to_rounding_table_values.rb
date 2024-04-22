@@ -1,4 +1,4 @@
-class AddActionToRoundingTableValues < ActiveRecord::Migration[4.2]
+class AddActionToRoundingTableValues < ActiveRecord::Migration
   def change
     add_column :rounding_table_values, :action, :integer
   end

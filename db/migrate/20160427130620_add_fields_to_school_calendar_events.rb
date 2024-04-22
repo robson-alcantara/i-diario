@@ -1,4 +1,4 @@
-class AddFieldsToSchoolCalendarEvents < ActiveRecord::Migration[4.2]
+class AddFieldsToSchoolCalendarEvents < ActiveRecord::Migration
   def change
     add_column :school_calendar_events, :coverage, :string, default: 'by_unity', null: false
     add_column :school_calendar_events, :grade_id, :integer, index: true

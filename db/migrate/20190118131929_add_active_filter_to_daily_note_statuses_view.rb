@@ -1,4 +1,4 @@
-class AddActiveFilterToDailyNoteStatusesView < ActiveRecord::Migration[4.2]
+class AddActiveFilterToDailyNoteStatusesView < ActiveRecord::Migration
   def change
     execute <<-SQL
       DROP VIEW daily_note_statuses;

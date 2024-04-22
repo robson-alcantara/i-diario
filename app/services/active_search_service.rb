@@ -13,8 +13,7 @@ class ActiveSearchService
     daily_note_students = DailyNoteStudent.by_test_date_between(start_date, end_date)
                                           .by_student_id(student)
 
-    daily_note_students.each do |daily_note_student|
-      daily_note_student.update(note: @options[:note])
-    end
+    daily_note_students.update_all(note: @options[:note])
   end
+
 end

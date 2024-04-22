@@ -1,4 +1,4 @@
-class TestSettingTest < ApplicationRecord
+class TestSettingTest < ActiveRecord::Base
   acts_as_copy_target
 
   audited associated_with: :test_setting, except: :test_setting_id

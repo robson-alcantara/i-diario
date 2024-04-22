@@ -1,4 +1,4 @@
-class FillCurrentUserYear < ActiveRecord::Migration[4.2]
+class FillCurrentUserYear < ActiveRecord::Migration
   def change
     execute <<-SQL
     UPDATE users

@@ -1,4 +1,4 @@
-class CreateMaterializedViewMvwFrequencyBySchoolClassroomTeacher < ActiveRecord::Migration[4.2]
+class CreateMaterializedViewMvwFrequencyBySchoolClassroomTeacher < ActiveRecord::Migration
   def change
     execute <<-SQL
       CREATE MATERIALIZED VIEW mvw_frequency_by_school_classroom_teachers AS

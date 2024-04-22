@@ -1,4 +1,4 @@
-class PopulateSchoolTermTypeToTeachingPlans < ActiveRecord::Migration[4.2]
+class PopulateSchoolTermTypeToTeachingPlans < ActiveRecord::Migration
   def change
     TeachingPlan.find_each do |teaching_plan|
       school_term = teaching_plan.school_term

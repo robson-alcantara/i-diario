@@ -1,4 +1,4 @@
-class AddColumnOldRecordToConceptualExams < ActiveRecord::Migration[4.2]
+class AddColumnOldRecordToConceptualExams < ActiveRecord::Migration
   def change
     add_column :conceptual_exams, :old_record, :boolean, default: true
   end

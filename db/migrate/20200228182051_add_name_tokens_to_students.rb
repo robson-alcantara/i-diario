@@ -1,4 +1,4 @@
-class AddNameTokensToStudents < ActiveRecord::Migration[4.2]
+class AddNameTokensToStudents < ActiveRecord::Migration
   def up
     execute <<-SQL
       ALTER TABLE students add column name_tokens TSVECTOR;

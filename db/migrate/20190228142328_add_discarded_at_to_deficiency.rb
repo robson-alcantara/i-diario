@@ -1,4 +1,4 @@
-class AddDiscardedAtToDeficiency < ActiveRecord::Migration[4.2]
+class AddDiscardedAtToDeficiency < ActiveRecord::Migration
   def up
     add_column :deficiencies, :discarded_at, :datetime
     add_index :deficiencies, :discarded_at

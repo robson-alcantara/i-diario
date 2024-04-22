@@ -1,4 +1,4 @@
-class AddDiscardedAtToStudentBiometrics < ActiveRecord::Migration[4.2]
+class AddDiscardedAtToStudentBiometrics < ActiveRecord::Migration
   def change
     add_column :student_biometrics, :discarded_at, :datetime
   end

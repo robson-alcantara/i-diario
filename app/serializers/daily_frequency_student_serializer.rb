@@ -1,7 +1,5 @@
 class DailyFrequencyStudentSerializer < ActiveModel::Serializer
-  attributes :id, :active, :present, :daily_frequency_id, :updated_at, :created_at, :sequence, :student
+  attributes :id, :active, :present, :daily_frequency_id, :updated_at, :created_at, :sequence
 
-  def student
-    ::StudentSerializer.new(object.student).attributes
-  end
+  has_one :student
 end

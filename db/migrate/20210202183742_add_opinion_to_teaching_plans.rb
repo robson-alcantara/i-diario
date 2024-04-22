@@ -1,4 +1,4 @@
-class AddOpinionToTeachingPlans < ActiveRecord::Migration[4.2]
+class AddOpinionToTeachingPlans < ActiveRecord::Migration
   def change
     add_column :teaching_plans, :opinion, :text
   end

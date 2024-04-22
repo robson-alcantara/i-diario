@@ -4,24 +4,15 @@ FactoryGirl.define do
     grade
     teacher
 
-    year Date.current.year
+    year { Date.current.year }
     school_term_type
     school_term_type_step
-    methodology Faker::Lorem.sentence
-    evaluation Faker::Lorem.sentence
-    references Faker::Lorem.sentence
-    contents { create_list(:content, 3) } # Altere o número conforme necessário
-    objectives { create_list(:objective, 3) }
+    contents { [create(:content)] }
 
     before(:create) do |teaching_plan, evaluator|
-      evaluator.contents.map.with_index do |content, index|
-        teaching_plan.contents_created_at_position ||= {}
+      teaching_plan.contents_created_at_position = {}
+      evaluator.contents.each_with_index do |content, index|
         teaching_plan.contents_created_at_position[content.id] = index
-      end
-
-      evaluator.objectives.map.with_index do |objective, index|
-        teaching_plan.objectives_created_at_position ||= {}
-        teaching_plan.objectives_created_at_position[objective.id] = index
       end
     end
 
@@ -44,10 +35,8 @@ FactoryGirl.define do
     trait :with_teacher_discipline_classroom do
       after(:build) do |teaching_plan, evaluator|
         teaching_plan.teacher_id ||= teaching_plan.teacher.id
-        classrooms_grade = create(:classrooms_grade, grade: teaching_plan.grade)
-        classroom = evaluator.classroom || classrooms_grade.classroom
+        classroom = evaluator.classroom || create(:classroom, grade: teaching_plan.grade)
         discipline = evaluator.discipline || create(:discipline)
-        grade = evaluator.grade || create(:grade)
 
         teaching_plan.contents_created_at_position = {}
         evaluator.contents.each_with_index do |content, index|
@@ -58,8 +47,7 @@ FactoryGirl.define do
           :teacher_discipline_classroom,
           teacher: teaching_plan.teacher,
           classroom: classroom,
-          discipline: discipline,
-          grade: grade
+          discipline: discipline
         )
       end
     end

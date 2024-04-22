@@ -1,4 +1,4 @@
-class AddFUnaccent < ActiveRecord::Migration[4.2]
+class AddFUnaccent < ActiveRecord::Migration
   def up
     execute <<-SQL
       CREATE OR REPLACE FUNCTION f_unaccent(text)

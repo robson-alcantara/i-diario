@@ -1,4 +1,4 @@
-class Objective < ApplicationRecord
+class Objective < ActiveRecord::Base
   audited
   has_associated_audits
 

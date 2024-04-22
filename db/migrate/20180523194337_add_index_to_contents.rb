@@ -1,4 +1,4 @@
-class AddIndexToContents < ActiveRecord::Migration[4.2]
+class AddIndexToContents < ActiveRecord::Migration
   def up
     execute <<-SQL
       CREATE INDEX contents_description_gin_trgm_idx ON contents

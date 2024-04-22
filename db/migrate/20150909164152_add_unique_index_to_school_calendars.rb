@@ -1,4 +1,4 @@
-class AddUniqueIndexToSchoolCalendars < ActiveRecord::Migration[4.2]
+class AddUniqueIndexToSchoolCalendars < ActiveRecord::Migration
   def change
     add_index :school_calendars, [:year, :unity_id], unique: true
   end

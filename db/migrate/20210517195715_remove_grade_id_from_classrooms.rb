@@ -1,4 +1,4 @@
-class RemoveGradeIdFromClassrooms < ActiveRecord::Migration[4.2]
+class RemoveGradeIdFromClassrooms < ActiveRecord::Migration
   def change
     remove_column :classrooms, :grade_id
   end

@@ -1,4 +1,4 @@
-class AddFieldPeriodToDailyFrequenciesUniqueIndexWithoutNullColumns < ActiveRecord::Migration[4.2]
+class AddFieldPeriodToDailyFrequenciesUniqueIndexWithoutNullColumns < ActiveRecord::Migration
   def change
     remove_index :daily_frequencies, name: 'daily_frequencies_unique_without_null_columns_idx'
     add_index :daily_frequencies, [:classroom_id, :frequency_date, :period, :discipline_id, :class_number],

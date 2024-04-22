@@ -1,4 +1,4 @@
-class RemoveColumnEntityIdFromWorkerBatch < ActiveRecord::Migration[4.2]
+class RemoveColumnEntityIdFromWorkerBatch < ActiveRecord::Migration
   def change
     remove_column :worker_batches, :entity_id, :integer
   end

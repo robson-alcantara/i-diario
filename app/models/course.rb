@@ -16,7 +16,7 @@ class Course < ActiveRecord::Base
   scope :ordered, -> { order(arel_table[:description].asc) }
 
   def self.by_unity(unity)
-    joins(grades: [:classrooms]).where(classrooms: { unity_id: unity }).distinct
+    joins(grades: [:classrooms]).where(classrooms: { unity_id: unity }).uniq
   end
 
   def to_s

@@ -1,4 +1,4 @@
-class AddIdToFunctionStepsByClassroom < ActiveRecord::Migration[4.2]
+class AddIdToFunctionStepsByClassroom < ActiveRecord::Migration
   def change
     execute <<-SQL
       DROP FUNCTION steps_by_classroom(INT, INT);

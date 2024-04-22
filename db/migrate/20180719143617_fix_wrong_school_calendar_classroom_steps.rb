@@ -1,4 +1,4 @@
-class FixWrongSchoolCalendarClassroomSteps < ActiveRecord::Migration[4.2]
+class FixWrongSchoolCalendarClassroomSteps < ActiveRecord::Migration
   def change
     execute <<-SQL
       DELETE FROM descriptive_exams

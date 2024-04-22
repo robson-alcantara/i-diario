@@ -1,4 +1,4 @@
-class PopulateLabelColorToDiscipline < ActiveRecord::Migration[4.2]
+class PopulateLabelColorToDiscipline < ActiveRecord::Migration
   def change
     ActiveRecord::Base.connection.execute(
       <<-SQL

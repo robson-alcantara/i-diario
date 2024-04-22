@@ -1,4 +1,4 @@
-class ChangeDailyFrequencyStudentIndexToWhereDiscardedAtIsNull < ActiveRecord::Migration[4.2]
+class ChangeDailyFrequencyStudentIndexToWhereDiscardedAtIsNull < ActiveRecord::Migration
   disable_ddl_transaction!
 
   def change

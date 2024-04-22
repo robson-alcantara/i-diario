@@ -20,7 +20,7 @@ FactoryGirl.define do
     end
 
     trait :by_discipline do
-      association :classroom, factory: [:classroom, :by_discipline_create_rule]
+      association :classroom, factory: [:classroom, :by_discipline]
     end
 
     trait :with_students do

@@ -1,4 +1,4 @@
-class FixTeacherDisciplineClassroomsIndexes < ActiveRecord::Migration[4.2]
+class FixTeacherDisciplineClassroomsIndexes < ActiveRecord::Migration
   def change
     remove_index :teacher_discipline_classrooms, name: :idx_teacher_discipline_classrooms_all_fks
     remove_index :teacher_discipline_classrooms, name: :idx_teacher_discipline_classrooms_two_fks

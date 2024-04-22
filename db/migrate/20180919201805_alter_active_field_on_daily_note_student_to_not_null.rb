@@ -1,4 +1,4 @@
-class AlterActiveFieldOnDailyNoteStudentToNotNull < ActiveRecord::Migration[4.2]
+class AlterActiveFieldOnDailyNoteStudentToNotNull < ActiveRecord::Migration
   def change
     execute <<-SQL
       DROP VIEW daily_note_statuses;

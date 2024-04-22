@@ -1,4 +1,4 @@
-class RemoveColumnDependenceFromDailyNoteStudents < ActiveRecord::Migration[4.2]
+class RemoveColumnDependenceFromDailyNoteStudents < ActiveRecord::Migration
   def change
     remove_column :daily_note_students, :dependence, :boolean
   end

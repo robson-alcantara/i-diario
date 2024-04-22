@@ -1,4 +1,4 @@
-class SetStudentIdOnStudentEnrollmentsWhenIsNullAgain < ActiveRecord::Migration[4.2]
+class SetStudentIdOnStudentEnrollmentsWhenIsNullAgain < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE student_enrollments SET student_id = students.id

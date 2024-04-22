@@ -1,4 +1,4 @@
-class StudentEnrollmentDependence < ApplicationRecord
+class StudentEnrollmentDependence < ActiveRecord::Base
   include Discardable
 
   audited

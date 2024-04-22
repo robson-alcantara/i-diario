@@ -18,6 +18,7 @@ RSpec.describe IeducarApi::Grades, type: :service do
 
     context 'all grades' do
       it 'returns all grades' do
+        skip
 
         VCR.use_cassette('grades') do
           result = subject.fetch

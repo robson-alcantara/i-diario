@@ -1,4 +1,4 @@
-class AddYearToExistingComplementaryExamSettings < ActiveRecord::Migration[4.2]
+class AddYearToExistingComplementaryExamSettings < ActiveRecord::Migration
   def change
     execute <<-SQL
       DO $$

@@ -1,4 +1,4 @@
-class CreateKnowledgeAreas < ActiveRecord::Migration[4.2]
+class CreateKnowledgeAreas < ActiveRecord::Migration
   def change
     create_table :knowledge_areas do |t|
       t.string :description

@@ -1,4 +1,4 @@
-class RemoveForeignKeysOnConceptualExams < ActiveRecord::Migration[4.2]
+class RemoveForeignKeysOnConceptualExams < ActiveRecord::Migration
   def change
     execute <<-SQL
       DROP INDEX unique_index_on_conceptual_exams;

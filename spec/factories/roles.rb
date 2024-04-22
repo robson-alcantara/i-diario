@@ -8,9 +8,5 @@ FactoryGirl.define do
     trait :administrator do
       access_level AccessLevel::ADMINISTRATOR
     end
-
-    trait :teacher do
-      access_level AccessLevel::TEACHER
-    end
   end
 end

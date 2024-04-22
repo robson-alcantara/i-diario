@@ -1,4 +1,4 @@
-class AddObservationsToAvaliations < ActiveRecord::Migration[4.2]
+class AddObservationsToAvaliations < ActiveRecord::Migration
   def change
     add_column :avaliations, :observations, :text
   end

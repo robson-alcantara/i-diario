@@ -1,4 +1,4 @@
-class AddIndexKnowledgeAreasOnGroupDescriptors < ActiveRecord::Migration[4.2]
+class AddIndexKnowledgeAreasOnGroupDescriptors < ActiveRecord::Migration
   def change
     add_index :knowledge_areas, :group_descriptors
   end

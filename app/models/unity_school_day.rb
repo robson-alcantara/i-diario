@@ -1,4 +1,4 @@
-class UnitySchoolDay < ApplicationRecord
+class UnitySchoolDay < ActiveRecord::Base
   audited
 
   belongs_to :unity

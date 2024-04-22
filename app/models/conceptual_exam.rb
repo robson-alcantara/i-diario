@@ -72,21 +72,16 @@ class ConceptualExam < ActiveRecord::Base
   def self.by_teacher(teacher_id)
     active.where(
       TeacherDisciplineClassroom.arel_table[:teacher_id].eq(teacher_id)
-    ).distinct
+    ).uniq
   end
 
   def self.by_status(classroom_id, teacher_id, status)
     discipline_ids = TeacherDisciplineClassroom.by_classroom(classroom_id)
                                                .by_teacher_id(teacher_id)
                                                .pluck(:discipline_id)
-
-    exempted_discipline_ids = SpecificStep.where(classroom_id: classroom_id)
-                                          .where.not(used_steps: '')
-                                          .pluck(:discipline_id)
-
-    incomplete_conceptual_exams_ids = ConceptualExamValue.joins(:conceptual_exam).active.where(value: nil)
+    incomplete_conceptual_exams_ids = ConceptualExamValue.joins(:conceptual_exam).active
+                                                         .where(value: nil)
                                                          .where(conceptual_exams: { classroom_id: classroom_id })
-                                                         .where.not(discipline_id: exempted_discipline_ids)
                                                          .by_discipline_id(discipline_ids)
                                                          .group(:conceptual_exam_id)
                                                          .pluck(:conceptual_exam_id)
@@ -98,7 +93,6 @@ class ConceptualExam < ActiveRecord::Base
       where.not(arel_table[:id].in(incomplete_conceptual_exams_ids))
     end
   end
-
 
   def status
     discipline_ids = TeacherDisciplineClassroom.where(classroom_id: classroom_id, teacher_id: teacher_id)
@@ -157,7 +151,7 @@ class ConceptualExam < ActiveRecord::Base
   private
 
   def student_must_have_conceptual_exam_score_type
-    return if student.blank? || classroom.blank? || validation_type.eql?(:destroy)
+    return if student.blank? || classroom.blank?
 
     permited_score_types = [ScoreTypes::CONCEPT, ScoreTypes::NUMERIC_AND_CONCEPT]
     classroom_grade = ClassroomsGrade.by_student_id(student.id).by_classroom_id(classroom.id)&.first

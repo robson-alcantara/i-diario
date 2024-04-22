@@ -1,4 +1,4 @@
-class PopulateAttachments < ActiveRecord::Migration[4.2]
+class PopulateAttachments < ActiveRecord::Migration
   def change
     execute(<<-SQL)
       update absence_justification_attachments

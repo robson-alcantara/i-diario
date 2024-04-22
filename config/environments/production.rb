@@ -20,14 +20,14 @@ Rails.application.configure do
   # config.action_dispatch.rack_cache = true
 
   # Disable Rails's static asset server (Apache or nginx will already do this).
-  config.public_file_server.enabled = true
+  config.serve_static_files = false
 
   # Compress JavaScripts and CSS.
   config.assets.js_compressor = Uglifier.new(harmony: true)
   # config.assets.css_compressor = :sass
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
-  config.assets.compile = true
+  config.assets.compile = false
 
   # Generate digests for assets URLs.
   config.assets.digest = true
@@ -52,22 +52,6 @@ Rails.application.configure do
 
   # Use a different cache store in production.
   config.cache_store = :dalli_store, Rails.application.secrets[:cache_store_url]
-
-  if (Rails.application.secrets[:REDIS_MODE] == 'sentinel')
-    config.cache_store = :redis_store, {
-      url: "#{Rails.application.secrets[:REDIS_URL]}#{Rails.application.secrets[:REDIS_DB_CACHE]}",
-      role: "master",
-      sentinels: Rails.application.secrets[:REDIS_SENTINELS].split(";").map { |host| { host: host,  port: 26379 }},
-      namespace: "cache",
-      expires_in: 1.days
-    }
-  else
-    config.cache_store = :redis_store, {
-      url: "#{Rails.application.secrets[:REDIS_URL]}#{Rails.application.secrets[:REDIS_DB_CACHE]}",
-      namespace: "cache",
-      expires_in: 1.days
-    }
-  end
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.action_controller.asset_host = "http://assets.example.com"

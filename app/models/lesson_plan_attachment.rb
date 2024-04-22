@@ -1,4 +1,4 @@
-class LessonPlanAttachment < ApplicationRecord
+class LessonPlanAttachment < ActiveRecord::Base
   audited
 
   belongs_to :lesson_plan

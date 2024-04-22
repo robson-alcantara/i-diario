@@ -1,4 +1,4 @@
-class AddFullnameFunction < ActiveRecord::Migration[4.2]
+class AddFullnameFunction < ActiveRecord::Migration
   def change
     execute <<-SQL
       create or replace function public.set_full_name()

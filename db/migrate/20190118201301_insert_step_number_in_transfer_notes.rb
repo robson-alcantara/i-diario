@@ -1,4 +1,4 @@
-class InsertStepNumberInTransferNotes < ActiveRecord::Migration[4.2]
+class InsertStepNumberInTransferNotes < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE transfer_notes

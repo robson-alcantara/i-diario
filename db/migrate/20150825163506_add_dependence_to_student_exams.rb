@@ -1,4 +1,4 @@
-class AddDependenceToStudentExams < ActiveRecord::Migration[4.2]
+class AddDependenceToStudentExams < ActiveRecord::Migration
   def change
     add_column :daily_note_students, :dependence, :boolean
     add_column :daily_frequency_students, :dependence, :boolean

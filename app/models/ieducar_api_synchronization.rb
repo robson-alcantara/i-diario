@@ -1,4 +1,4 @@
-class IeducarApiSynchronization < ApplicationRecord
+class IeducarApiSynchronization < ActiveRecord::Base
   acts_as_copy_target
 
   has_enumeration_for :status,

@@ -111,7 +111,7 @@ class ExamRecordReport < BaseReport
     self.any_student_with_dependence = false
 
     @students_enrollments.each do |student_enrollment|
-      averages[student_enrollment.id] = StudentAverageCalculator.new(
+      averages[student_enrollment.student_id] = StudentAverageCalculator.new(
         student_enrollment.student
       ).calculate(
         classroom,
@@ -123,7 +123,7 @@ class ExamRecordReport < BaseReport
         lowest_note = @lowest_notes[student_enrollment.student_id].to_s
 
         if lowest_note.present?
-          recovery_lowest_note[student_enrollment.id] = lowest_note
+          recovery_lowest_note[student_enrollment.student_id] = lowest_note
         end
       end
     end
@@ -142,10 +142,6 @@ class ExamRecordReport < BaseReport
       end
     end
 
-    @school_term_recoveries.each do |school_term_recovery|
-      exams << school_term_recovery
-    end
-
     @complementary_exams.each do |complementary_exam|
       if complementary_exam.complementary_exam_setting.integral?
         integral_complementary_exams << complementary_exam
@@ -153,6 +149,10 @@ class ExamRecordReport < BaseReport
       end
 
       exams << complementary_exam
+    end
+
+    @school_term_recoveries.each do |school_term_recovery|
+      exams << school_term_recovery
     end
 
     integral_complementary_exams.each do |integral_exam|
@@ -192,21 +192,20 @@ class ExamRecordReport < BaseReport
 
           if exempted_from_discipline || (avaliation_id.present? && exempted_avaliation?(student_enrollment.student_id, avaliation_id))
             student_note = ExemptedDailyNoteStudent.new
-            averages[student_enrollment.id] = "D" if exempted_from_discipline
+            averages[student_enrollment.student_id] = "D" if exempted_from_discipline
           elsif in_active_search
             @active_search = true
 
             student_note = ActiveSearchDailyNoteStudent.new
           elsif avaliation_id.present?
-            note_student = DailyNoteStudent.find_by(student_id: student_id, daily_note_id: daily_note_id, active: true)
-            daily_note_student = student_transferred?(note_student) if note_student.present?
+            daily_note_student = DailyNoteStudent.find_by(student_id: student_id, daily_note_id: daily_note_id, active: true)
             student_note = daily_note_student || NullDailyNoteStudent.new
           end
 
           score = nil
 
           if exempted_from_discipline || avaliation_id.present?
-            averages[student_enrollment.id] = nil if exempted_from_discipline
+            averages[student_enrollment.student_id] = nil if exempted_from_discipline
 
             recovery_note = recovery_record(exam) ? exam.students.find_by_student_id(student_id).try(&:score) : nil
             student_note.recovery_note = recovery_note if recovery_note.present? && daily_note_student.blank?
@@ -219,20 +218,19 @@ class ExamRecordReport < BaseReport
 
             score = recovery_student.present? ? recovery_student.try(:score) : (student_enrolled_on_date?(student_id, exam.recorded_at) ? '' :NullDailyNoteStudent.new.note)
 
-            school_term_recovery_scores[student_enrollment.id] = recovery_student.try(:score)
+            school_term_recovery_scores[student_enrollment.student_id] = recovery_student.try(:score)
           end
 
           student = Student.find(student_id)
 
           self.any_student_with_dependence = any_student_with_dependence || student_has_dependence?(student_enrollment, exam.discipline_id)
 
-          (students[student_enrollment.id] ||= {})[:name] = student.to_s
+          (students[student_id] ||= {})[:name] = student.to_s
 
-          students[student_enrollment.id] = {} if students[student_enrollment.id].nil?
-          students[student_enrollment.id][:dependence] = students[student_enrollment.id][:dependence] || student_has_dependence?(student_enrollment, exam.discipline_id)
-          (students[student_enrollment.id][:scores] ||= []) << make_cell(content: localize_score(score), align: :center)
-          students[student_enrollment.id][:social_name] = student.social_name
-          students[student_enrollment.id][:student_id] = student.id
+          students[student_id] = {} if students[student_id].nil?
+          students[student_id][:dependence] = students[student_id][:dependence] || student_has_dependence?(student_enrollment, exam.discipline_id)
+          (students[student_id][:scores] ||= []) << make_cell(content: localize_score(score), align: :center)
+          students[student_id][:social_name] = student.social_name
         end
       end
 
@@ -274,12 +272,12 @@ class ExamRecordReport < BaseReport
 
         if daily_notes_slice == sliced_exams.last
           recovery_score = if school_term_recovery_scores[key]
-                             calculate_recovery_score(value[:student_id], school_term_recovery_scores[key])
+                             calculate_recovery_score(key, school_term_recovery_scores[key])
                            end
 
           recovery_average = SchoolTermAverageCalculator.new(classroom)
                                                         .calculate(averages[key], recovery_score)
-          averages[key] = ScoreRounder.new(classroom, RoundedAvaliations::SCHOOL_TERM_RECOVERY, @school_calendar_step)
+          averages[key] = ScoreRounder.new(classroom, RoundedAvaliations::SCHOOL_TERM_RECOVERY)
                                       .round(recovery_average)
 
           average = averages[key]
@@ -326,14 +324,6 @@ class ExamRecordReport < BaseReport
 
       start_new_page if index < sliced_exams.count - 1
     end
-  end
-
-  def student_transferred?(note_student)
-    return note_student unless note_student.transfer_note_id
-
-    return note_student if note_student.note?
-
-    nil
   end
 
   def calculate_recovery_score(student_id, score)

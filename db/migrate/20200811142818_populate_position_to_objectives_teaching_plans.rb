@@ -1,4 +1,4 @@
-class PopulatePositionToObjectivesTeachingPlans < ActiveRecord::Migration[4.2]
+class PopulatePositionToObjectivesTeachingPlans < ActiveRecord::Migration
   def change
     execute 'UPDATE objectives_teaching_plans SET position = id'
   end

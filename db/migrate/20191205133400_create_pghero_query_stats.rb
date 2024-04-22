@@ -1,4 +1,4 @@
-class CreatePgheroQueryStats < ActiveRecord::Migration[4.2]
+class CreatePgheroQueryStats < ActiveRecord::Migration
   def change
     create_table :pghero_query_stats do |t|
       t.text :database

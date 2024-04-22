@@ -22,8 +22,7 @@ FactoryGirl.define do
         teacher = create(:teacher)
         discipline = evaluator.discipline || create(:discipline)
         (evaluator.grades || complementary_exam_setting.grades).each do |grade|
-          classroom_grade = create(:classrooms_grade, grade_id: grade)
-          classroom = classroom_grade.classroom
+          classroom = create(:classroom, grade: grade)
 
           create(
             :teacher_discipline_classroom,

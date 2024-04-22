@@ -1,4 +1,4 @@
-class SeedLearningObjectivesAndSkills < ActiveRecord::Migration[4.2]
+class SeedLearningObjectivesAndSkills < ActiveRecord::Migration
   def up
     execute File.read("#{Rails.root}/db/seeds/learning_objectives_and_skills.sql")
   end

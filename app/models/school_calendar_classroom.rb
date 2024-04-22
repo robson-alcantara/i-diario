@@ -20,9 +20,7 @@ class SchoolCalendarClassroom < ActiveRecord::Base
   }
   scope :ordered_by_description, -> { joins(:classroom).order('classrooms.description') }
 
-  validates :classroom, :school_calendar,
-            presence: true,
-            uniqueness: { scope: :classroom_id }
+  validates :classroom, :school_calendar, presence: true
 
   def classroom_step(date)
     classroom_steps.all.started_after_and_before(date).first

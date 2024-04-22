@@ -1,4 +1,4 @@
-class AddKindToUsers < ActiveRecord::Migration[4.2]
+class AddKindToUsers < ActiveRecord::Migration
   def change
     add_column :users, :kind, :string, default: "employee"
   end

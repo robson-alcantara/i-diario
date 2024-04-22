@@ -1,4 +1,4 @@
-class SetTeacherIdToAbsenceJustifications < ActiveRecord::Migration[4.2]
+class SetTeacherIdToAbsenceJustifications < ActiveRecord::Migration
   def change
     execute <<-SQL
       update absence_justifications

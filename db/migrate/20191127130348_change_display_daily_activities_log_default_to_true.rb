@@ -1,4 +1,4 @@
-class ChangeDisplayDailyActivitiesLogDefaultToTrue < ActiveRecord::Migration[4.2]
+class ChangeDisplayDailyActivitiesLogDefaultToTrue < ActiveRecord::Migration
   def change
     change_column_default :general_configurations, :display_daily_activies_log, true
   end

@@ -1,4 +1,4 @@
-class UpdateCurrentClassroomIdToTeachersWithWrongValue < ActiveRecord::Migration[4.2]
+class UpdateCurrentClassroomIdToTeachersWithWrongValue < ActiveRecord::Migration
   def change
     execute <<-SQL
     UPDATE users

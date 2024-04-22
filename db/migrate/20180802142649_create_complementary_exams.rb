@@ -1,4 +1,4 @@
-class CreateComplementaryExams < ActiveRecord::Migration[4.2]
+class CreateComplementaryExams < ActiveRecord::Migration
   def change
     create_table :complementary_exams do |t|
       t.date :recorded_at, null: false

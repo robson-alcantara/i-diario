@@ -1,4 +1,4 @@
-class CreateSchoolTermTypes < ActiveRecord::Migration[4.2]
+class CreateSchoolTermTypes < ActiveRecord::Migration
   def change
     create_table :school_term_types do |t|
       t.string :description, null: false

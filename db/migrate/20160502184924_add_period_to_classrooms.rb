@@ -1,4 +1,4 @@
-class AddPeriodToClassrooms < ActiveRecord::Migration[4.2]
+class AddPeriodToClassrooms < ActiveRecord::Migration
   def change
     add_column :classrooms, :period, :string
   end

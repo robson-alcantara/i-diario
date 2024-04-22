@@ -1,4 +1,4 @@
-class SetDefaultValuesToColumnAccessLevel < ActiveRecord::Migration[4.2]
+class SetDefaultValuesToColumnAccessLevel < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE roles SET access_level = 'parent' WHERE kind = 'parent';

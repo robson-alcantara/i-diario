@@ -79,7 +79,7 @@ class CurrentProfile
       return Classroom.none if unity.blank?
 
       classrooms = Classroom.by_unity(unity).ordered
-      if user_role&.role&.teacher? && teacher.present?
+      if user_role&.role&.teacher? && teacher.present? && user.teacher?
         classrooms = classrooms.by_teacher_id(teacher).ordered
       end
       classrooms = classrooms.by_year(school_year) if school_year
@@ -100,8 +100,8 @@ class CurrentProfile
       return Teacher.none if unity.blank? || classroom.blank?
       return Teacher.where(id: user.teacher_id) if user_role&.role&.teacher?
 
-      teachers_ids = TeacherDisciplineClassroom.where(classroom_id: classroom.id).distinct.pluck(:teacher_id)
-      teachers = Teacher.where(id: teachers_ids).distinct.order_by_name
+      teachers_ids = TeacherDisciplineClassroom.where(classroom_id: classroom.id).uniq.pluck(:teacher_id)
+      teachers = Teacher.where(id: teachers_ids).uniq.order_by_name
       teachers.to_a
     end
   end
@@ -128,10 +128,8 @@ class CurrentProfile
     cache ['disciplines', classroom&.id, teacher&.id, last_allocation] do
       return Discipline.none unless classroom && teacher
 
-      Discipline.not_descriptor
-                .by_teacher_and_classroom(teacher.id, classroom.id)
-                .grouped_by_knowledge_area
-                .to_a
+      Discipline.by_teacher_and_classroom(teacher.id, classroom.id)
+                .grouped_by_knowledge_area.to_a
     end
   end
 

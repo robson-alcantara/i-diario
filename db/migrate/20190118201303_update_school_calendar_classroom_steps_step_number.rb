@@ -1,4 +1,4 @@
-class UpdateSchoolCalendarClassroomStepsStepNumber < ActiveRecord::Migration[4.2]
+class UpdateSchoolCalendarClassroomStepsStepNumber < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE school_calendar_classroom_steps

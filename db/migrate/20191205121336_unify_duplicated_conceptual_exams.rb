@@ -1,4 +1,4 @@
-class UnifyDuplicatedConceptualExams < ActiveRecord::Migration[4.2]
+class UnifyDuplicatedConceptualExams < ActiveRecord::Migration
   def change
     conceptual_exams = ConceptualExam.joins(
       :classroom

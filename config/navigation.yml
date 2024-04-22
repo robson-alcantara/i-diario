@@ -152,9 +152,6 @@ navigation:
             path: "new_descriptive_exam_path"
             shortcut: true
         - menu:
-            type: "opn_tb_exams"
-            path: "opn_tb_exams_path"
-        - menu:
             type: "avaliations"
             path: "avaliations_path"
         - menu:
@@ -204,15 +201,6 @@ navigation:
             type: "attendance_record_report"
             path: "attendance_record_report_path"
         - menu:
-            type: "attendance_record_report_by_students"
-            path: "attendance_record_report_by_students_path"
-        - menu:
-            type: "daily_record_report"
-            path: "daily_record_report_path"                        
-        - menu:
-            type: "individual_record_report"
-            path: "individual_record_report_path"
-        - menu:
             type: "observation_record_report"
             path: "observation_record_report_path"
         - menu:
@@ -230,21 +218,7 @@ navigation:
         - menu:
             type: "partial_score_record_report"
             path: "partial_score_record_report_path"
-        - menu:
-            type: "progress_report"
-            path: "progress_report_path" 
-        - menu:
-            type: "consolidated_progress_report"
-            path: "consolidated_progress_report_path"             
-        - menu:
-            type: "monthly_frequencies_report"
-            path: "monthly_frequencies_report_path" 
-        - menu:
-            type: "minutes_of_final_results_report"
-            path: "minutes_of_final_results_report_path" 
-        - menu:
-            type: "parent_report"
-            path: "parent_report_path"                                                                      
+
   - menu:
       type: "ieducar_api_exam_postings"
       icon: "fa-arrow-circle-up"

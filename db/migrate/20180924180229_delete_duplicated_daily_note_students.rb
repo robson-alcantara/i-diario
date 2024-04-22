@@ -1,4 +1,4 @@
-class DeleteDuplicatedDailyNoteStudents < ActiveRecord::Migration[4.2]
+class DeleteDuplicatedDailyNoteStudents < ActiveRecord::Migration
   def change
     execute <<-SQL
       DELETE FROM daily_note_students

@@ -1,4 +1,4 @@
-class AddTeacherIdToTeachingPlans < ActiveRecord::Migration[4.2]
+class AddTeacherIdToTeachingPlans < ActiveRecord::Migration
   def change
     add_reference :teaching_plans, :teacher, index: true, foreign_key: true
   end

@@ -1,4 +1,4 @@
-class DailyNoteStudent < ApplicationRecord
+class DailyNoteStudent < ActiveRecord::Base
   include Discardable
 
   acts_as_copy_target
@@ -45,7 +45,7 @@ class DailyNoteStudent < ApplicationRecord
   end
 
   def recovered_note
-    recovery_note.to_f > note.to_f ? recovery_note : note.to_f
+    recovery_note.to_f > note.to_f ? recovery_note : note
   end
 
   def minimum_score

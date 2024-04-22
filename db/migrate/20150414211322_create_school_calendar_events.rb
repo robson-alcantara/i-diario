@@ -1,4 +1,4 @@
-class CreateSchoolCalendarEvents < ActiveRecord::Migration[4.2]
+class CreateSchoolCalendarEvents < ActiveRecord::Migration
   def change
     create_table :school_calendar_events do |t|
        t.references :school_calendar, index: true, null: false

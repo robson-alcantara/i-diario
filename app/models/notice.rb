@@ -1,4 +1,4 @@
-class Notice < ApplicationRecord
+class Notice < ActiveRecord::Base
   has_enumeration_for :kind, with: NoticeTypes, create_scopes: true
 
   belongs_to :noticeable, polymorphic: true

@@ -1,4 +1,4 @@
-class AddUnitTypeToUnities < ActiveRecord::Migration[4.2]
+class AddUnitTypeToUnities < ActiveRecord::Migration
   def up
     add_column :unities, :unit_type, :string
 

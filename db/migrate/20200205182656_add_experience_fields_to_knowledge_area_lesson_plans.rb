@@ -1,4 +1,4 @@
-class AddExperienceFieldsToKnowledgeAreaLessonPlans < ActiveRecord::Migration[4.2]
+class AddExperienceFieldsToKnowledgeAreaLessonPlans < ActiveRecord::Migration
   def change
     add_column :knowledge_area_lesson_plans, :experience_fields, :string
   end

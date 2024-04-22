@@ -1,4 +1,4 @@
-class CreateDailyNotes < ActiveRecord::Migration[4.2]
+class CreateDailyNotes < ActiveRecord::Migration
   def change
     create_table :daily_notes do |t|
       t.references :unity, index: true, null: false

@@ -1,4 +1,4 @@
-class UserLogin < ApplicationRecord
+class UserLogin < ActiveRecord::Base
   acts_as_copy_target
 
   belongs_to :user

@@ -3,7 +3,7 @@ class SchoolsController < ApplicationController
 
   def index
     begin
-      codes = result["info-escolas"].map { |r| r["cod_escola"] }
+      codes = result["escolas"].map { |r| r["cod_escola"] }
 
       @unities = Unity.where(api_code: codes)
     rescue Exception => e
@@ -14,7 +14,12 @@ class SchoolsController < ApplicationController
   protected
 
   def result
-    api.fetch_all
+    api.fetch_with_vacancy(
+      ano: params[:year],
+      curso_id: params[:lecture_id],
+      serie_id: params[:grade_id],
+      turma_turno_id: params[:period]
+    )
   end
 
   def api

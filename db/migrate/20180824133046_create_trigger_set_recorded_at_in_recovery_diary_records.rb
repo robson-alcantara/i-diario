@@ -1,4 +1,4 @@
-class CreateTriggerSetRecordedAtInRecoveryDiaryRecords < ActiveRecord::Migration[4.2]
+class CreateTriggerSetRecordedAtInRecoveryDiaryRecords < ActiveRecord::Migration
   def change
     execute <<-SQL
       CREATE TRIGGER trigger_set_recorded_at_in_recovery_diary_records

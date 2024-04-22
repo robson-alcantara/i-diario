@@ -1,4 +1,4 @@
-class FillRecordedAtToTranferNotes < ActiveRecord::Migration[4.2]
+class FillRecordedAtToTranferNotes < ActiveRecord::Migration
   def change
     execute <<-SQL
       UPDATE transfer_notes SET recorded_at = transfer_date;

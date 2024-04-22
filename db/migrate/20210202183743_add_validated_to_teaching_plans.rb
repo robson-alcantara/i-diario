@@ -1,4 +1,4 @@
-class AddValidatedToTeachingPlans < ActiveRecord::Migration[4.2]
+class AddValidatedToTeachingPlans < ActiveRecord::Migration
   def change
     add_column :teaching_plans, :validated, :boolean
   end

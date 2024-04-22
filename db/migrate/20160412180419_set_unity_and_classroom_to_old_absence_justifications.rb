@@ -1,4 +1,4 @@
-class SetUnityAndClassroomToOldAbsenceJustifications < ActiveRecord::Migration[4.2]
+class SetUnityAndClassroomToOldAbsenceJustifications < ActiveRecord::Migration
   def change
     execute <<-SQL
     update absence_justifications

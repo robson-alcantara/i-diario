@@ -1,4 +1,4 @@
-class ContentRecord < ApplicationRecord
+class ContentRecord < ActiveRecord::Base
   include Audit
   include ColumnsLockable
   include TeacherRelationable
@@ -17,11 +17,9 @@ class ContentRecord < ApplicationRecord
 
   attr_writer :unity_id
   attr_writer :contents_tags
-  attr_accessor :creator_type
 
   has_one :discipline_content_record, dependent: :delete
   has_one :knowledge_area_content_record, dependent: :delete
-
   has_many :content_records_contents, dependent: :destroy
   deferred_has_many :contents, through: :content_records_contents
 
@@ -31,7 +29,6 @@ class ContentRecord < ApplicationRecord
   validates :unity_id, presence: true
   validates :classroom, presence: true
   validates :record_date, presence: true, school_calendar_day: true, posting_date: true
-  validates :daily_activities_record, presence: true, if: :require_daily_activities_record?
   validates :teacher, presence: true
   validate :at_least_one_content
 
@@ -87,26 +84,5 @@ class ContentRecord < ApplicationRecord
     if content_ids.blank?
       errors.add(:contents, :at_least_one_content)
     end
-  end
-
-  def require_daily_activities_record?
-    return false if general_configuration.require_daily_activities_record_does_not_require?
-    return true if general_configuration.require_daily_activities_record_always?
-
-    require_discipline_content_records? || require_knowledge_area_content_records?
-  end
-
-  def require_discipline_content_records?
-    has_discipline_content_record = discipline_content_record.present? || creator_type.eql?('discipline_content_record')
-    has_discipline_content_record && general_configuration.require_daily_activities_record_on_discipline_content_records?
-  end
-
-  def require_knowledge_area_content_records?
-    has_knowledge_area_content_record = knowledge_area_content_record.present? || creator_type.eql?('knowledge_area_content_record')
-    has_knowledge_area_content_record && general_configuration.require_daily_activities_record_on_knowledge_area_content_records?
-  end
-
-  def general_configuration
-    @general_configuration ||= GeneralConfiguration.current
   end
 end

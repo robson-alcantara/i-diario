@@ -7,11 +7,19 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
   before_action :require_allow_to_modify_prev_years, only: [:create, :update, :destroy]
 
   def index
-    set_options_by_user
-
-    fetch_recovery_diary_records_by_user
+    @final_recovery_diary_records =
+      apply_scopes(FinalRecoveryDiaryRecord)
+      .includes(recovery_diary_record: [:unity, :classroom, :discipline])
+      .filter(filtering_params(params[:search]))
+      .by_unity_id(current_unity.id)
+      .by_classroom_id(current_user_classroom)
+      .by_discipline_id(current_user_discipline)
+      .ordered
 
     authorize @final_recovery_diary_records
+
+    @classrooms = fetch_classrooms
+    @disciplines = fetch_disciplines
   end
 
   def new
@@ -19,30 +27,23 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
     @final_recovery_diary_record.school_calendar = current_school_calendar
     @final_recovery_diary_record.build_recovery_diary_record
     @final_recovery_diary_record.recovery_diary_record.unity = current_unity
-    @final_recovery_diary_record.recovery_diary_record.classroom = current_user_classroom
-    @final_recovery_diary_record.recovery_diary_record.discipline = current_user_discipline
-    set_options_by_user
-    fetch_disciplines_by_classroom
 
     number_of_decimal_places
   end
 
   def create
     @final_recovery_diary_record = FinalRecoveryDiaryRecord.new.localized
-    @final_recovery_diary_record.assign_attributes(resource_params.to_h)
+    @final_recovery_diary_record.assign_attributes(resource_params)
     @final_recovery_diary_record.recovery_diary_record.teacher_id = current_teacher_id
-    @final_recovery_diary_record.recovery_diary_record.creator_type = 'final_recovery_diary_record'
 
     authorize @final_recovery_diary_record
 
     if @final_recovery_diary_record.save
       respond_with @final_recovery_diary_record, location: final_recovery_diary_records_path
     else
-      set_options_by_user
-      fetch_disciplines_by_classroom
       number_of_decimal_places
 
-      students_in_final_recovery = fetch_final_recoveries_by_classroom
+      students_in_final_recovery = fetch_students_in_final_recovery
       decorate_students(students_in_final_recovery)
 
       render :new
@@ -52,15 +53,10 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
   def edit
     @final_recovery_diary_record = FinalRecoveryDiaryRecord.find(params[:id]).localized
 
-    set_options_by_user
-    fetch_disciplines_by_classroom
-
     authorize @final_recovery_diary_record
 
-    students_in_final_recovery = fetch_final_recoveries_by_classroom
-
+    students_in_final_recovery = fetch_students_in_final_recovery
     add_missing_students(students_in_final_recovery)
-
     @final_recovery_diary_record.recovery_diary_record.students.each do |record_student|
       record_student.student = fetch_student_in_final_recovery(record_student.student.id)
     end
@@ -70,20 +66,18 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
 
   def update
     @final_recovery_diary_record = FinalRecoveryDiaryRecord.find(params[:id]).localized
-    @final_recovery_diary_record.assign_attributes(resource_params.to_h)
+    @final_recovery_diary_record.assign_attributes(resource_params)
     @final_recovery_diary_record.recovery_diary_record.teacher_id = current_teacher_id
     @final_recovery_diary_record.recovery_diary_record.current_user = current_user
 
     authorize @final_recovery_diary_record
 
-    fetch_final_recoveries_by_classroom
+    students_in_final_recovery = fetch_students_in_final_recovery
 
     if @final_recovery_diary_record.save
       respond_with @final_recovery_diary_record, location: final_recovery_diary_records_path
     else
-      set_options_by_user
       number_of_decimal_places
-      fetch_disciplines_by_classroom
 
       render :edit
     end
@@ -92,7 +86,7 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
   def destroy
     @final_recovery_diary_record = FinalRecoveryDiaryRecord.find(params[:id])
 
-    @final_recovery_diary_record.recovery_diary_record.destroy
+    @final_recovery_diary_record.destroy
 
     respond_with @final_recovery_diary_record, location: final_recovery_diary_records_path
   end
@@ -126,18 +120,6 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
     )
   end
 
-  def fetch_recovery_diary_records_by_user
-    @final_recovery_diary_records =
-      apply_scopes(FinalRecoveryDiaryRecord)
-        .includes(recovery_diary_record: [:unity, :classroom, :discipline])
-        .filter(filtering_params(params[:search]))
-        .by_unity_id(current_unity.id)
-        .by_teacher_id(current_teacher.id)
-        .by_classroom_id(@classrooms.map(&:id))
-        .by_discipline_id(@disciplines.map(&:id))
-        .ordered
-  end
-
   def filtering_params(params)
     params = {} unless params
     params.slice(
@@ -152,18 +134,17 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
   end
 
   def fetch_classrooms
-    Classroom.where(id: current_user_classroom.id).ordered
+    Classroom.where(id: current_user_classroom)
+    .ordered
   end
 
   def fetch_disciplines
-    Discipline.where(id: current_user_discipline.id).ordered
+    Discipline.where(id: current_user_discipline)
+      .ordered
   end
 
-  def fetch_final_recoveries_by_classroom
-    classroom_id = @final_recovery_diary_record.recovery_diary_record.classroom_id
-    discipline_id = @final_recovery_diary_record.recovery_diary_record.discipline_id
-
-    return unless classroom_id && discipline_id
+  def fetch_students_in_final_recovery
+    return unless @final_recovery_diary_record.recovery_diary_record.classroom_id && @final_recovery_diary_record.recovery_diary_record.discipline_id
 
     StudentsInFinalRecoveryFetcher.new(api_configuration)
       .fetch(
@@ -173,10 +154,7 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
   end
 
   def fetch_student_in_final_recovery(student_id)
-    classroom_id = @final_recovery_diary_record.recovery_diary_record.classroom_id
-    discipline_id = @final_recovery_diary_record.recovery_diary_record.discipline_id
-
-    return unless classroom_id && discipline_id
+    return unless @final_recovery_diary_record.recovery_diary_record.classroom_id && @final_recovery_diary_record.recovery_diary_record.discipline_id
 
     StudentInFinalRecoveryFetcher.new(api_configuration)
       .fetch(
@@ -200,9 +178,7 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
 
   def decorate_students(students_in_final_recovery)
     @final_recovery_diary_record.recovery_diary_record.students.reject(&:marked_for_destruction?).each do |student|
-      student.student = students_in_final_recovery.find { |student_in_final_recovery|
-        student_in_final_recovery.id == student.student_id
-      }
+      student.student = students_in_final_recovery.find { |student_in_final_recovery| student_in_final_recovery.id == student.student_id }
     end
   end
 
@@ -215,34 +191,12 @@ class FinalRecoveryDiaryRecordsController < ApplicationController
   end
 
   def number_of_decimal_places
-    classroom = current_user_classroom
-    schoool_calendar = @final_recovery_diary_record.school_calendar.steps.to_a.last
-    test_setting = test_setting(classroom, schoool_calendar)
+    test_setting = test_setting(current_user_classroom, @final_recovery_diary_record.school_calendar.steps.to_a.last)
 
     if test_setting.nil?
       redirect_to final_recovery_diary_records_path, alert: t('final_recovery_diary_records.new.not_exists_test_setting')
     else
       @number_of_decimal_places = test_setting.number_of_decimal_places
     end
-  end
-
-  def set_options_by_user
-    return fetch_linked_by_teacher unless current_user.current_role_is_admin_or_employee?
-
-    @classrooms ||= fetch_classrooms
-    @disciplines ||= fetch_disciplines
-  end
-
-  def fetch_linked_by_teacher
-    @fetch_linked_by_teacher ||= TeacherClassroomAndDisciplineFetcher.fetch!(current_teacher.id, current_unity, current_school_year)
-    @classrooms ||= @fetch_linked_by_teacher[:classrooms]
-    @disciplines ||= @fetch_linked_by_teacher[:disciplines]
-  end
-
-  def fetch_disciplines_by_classroom
-    return if current_user.current_role_is_admin_or_employee?
-
-    classroom = @final_recovery_diary_record.recovery_diary_record.classroom
-    @disciplines = @disciplines.by_classroom(classroom).not_descriptor
   end
 end

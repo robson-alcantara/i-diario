@@ -1,4 +1,4 @@
-class AddIndexVisibleToStudentEnrollmentClassrooms < ActiveRecord::Migration[4.2]
+class AddIndexVisibleToStudentEnrollmentClassrooms < ActiveRecord::Migration
   disable_ddl_transaction!
 
   def change

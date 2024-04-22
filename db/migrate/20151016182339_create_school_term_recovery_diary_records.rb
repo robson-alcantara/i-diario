@@ -1,4 +1,4 @@
-class CreateSchoolTermRecoveryDiaryRecords < ActiveRecord::Migration[4.2]
+class CreateSchoolTermRecoveryDiaryRecords < ActiveRecord::Migration
   def change
     create_table :school_term_recovery_diary_records do |t|
       t.references(

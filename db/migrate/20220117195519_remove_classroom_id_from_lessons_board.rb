@@ -1,4 +1,4 @@
-class RemoveClassroomIdFromLessonsBoard < ActiveRecord::Migration[4.2]
+class RemoveClassroomIdFromLessonsBoard < ActiveRecord::Migration
   def change
     remove_column :lessons_boards, :classroom_id
   end

@@ -41,13 +41,13 @@ RSpec.describe Api::V2::ContentRecordsController, type: :controller do
         classroom_id: teacher_discipline_classroom.classroom_id,
         teacher_id: teacher_discipline_classroom.teacher_id,
         discipline_id: teacher_discipline_classroom.discipline_id,
-        contents: [],
+        contents: nil,
         format: 'json',
         locale: 'en'
       }
 
       expect {
-        post :sync, params: params, xhr: true
+        xhr :post, :sync, params
       }.to change { ContentRecord.count }.to(0)
     end
 
@@ -82,8 +82,7 @@ RSpec.describe Api::V2::ContentRecordsController, type: :controller do
 
       content_record.contents << content_record.contents.first
 
-      request.headers['CONTENT_TYPE'] = 'application/json'
-      post :sync, params: params, xhr: true
+      xhr :post, :sync, params
 
       expect(content_record.reload.contents.pluck(:description)).
         to match_array [Content.first.description, content2[:description]]

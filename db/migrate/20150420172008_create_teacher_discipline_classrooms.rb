@@ -1,4 +1,4 @@
-class CreateTeacherDisciplineClassrooms < ActiveRecord::Migration[4.2]
+class CreateTeacherDisciplineClassrooms < ActiveRecord::Migration
   def change
     create_table :teacher_discipline_classrooms do |t|
       t.references :teacher, index: true, null: false

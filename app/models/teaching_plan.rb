@@ -1,4 +1,4 @@
-class TeachingPlan < ApplicationRecord
+class TeachingPlan < ActiveRecord::Base
   include Audit
   include TeacherRelationable
   include Translatable
@@ -80,7 +80,7 @@ class TeachingPlan < ApplicationRecord
   def yearly?
     return unless school_term_type
 
-    SchoolTermType.where("description ILIKE 'Anual%'").where(id: school_term_type.id)
+    school_term_type.id == SchoolTermType.find_by(description: 'Anual').id
   end
 
   private

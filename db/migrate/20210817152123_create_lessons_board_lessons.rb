@@ -1,4 +1,4 @@
-class CreateLessonsBoardLessons < ActiveRecord::Migration[4.2]
+class CreateLessonsBoardLessons < ActiveRecord::Migration
   def change
     create_table :lessons_board_lessons do |t|
       t.integer :lessons_board_id

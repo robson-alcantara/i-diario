@@ -1,4 +1,4 @@
-class AddMigrateToEntity < ActiveRecord::Migration[4.2]
+class AddMigrateToEntity < ActiveRecord::Migration
   def change
     add_column :entities, :migrate, :boolean, null: false, default: true
   end

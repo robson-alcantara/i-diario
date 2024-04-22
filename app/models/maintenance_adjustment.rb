@@ -1,4 +1,4 @@
-class MaintenanceAdjustment < ApplicationRecord
+class MaintenanceAdjustment < ActiveRecord::Base
   acts_as_copy_target
 
   include Audit

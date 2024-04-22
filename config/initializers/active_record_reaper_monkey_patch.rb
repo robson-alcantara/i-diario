@@ -12,58 +12,41 @@ class ActiveRecord::Railtie
   initializer "active_record.clear_active_connections" do
     config.after_initialize do
       ActiveSupport.on_load(:active_record) do
-        flush_idle_connections!
+        clear_active_connections!
       end
     end
   end
-end
-
-module ActiveRecord::ConnectionHandling
-  delegate :clear_active_connections!, :clear_reloadable_connections!,
-           :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
 end
 
 # [2] https://github.com/rails/rails/pull/31221
 class ActiveRecord::ConnectionAdapters::ConnectionPool
   def initialize(spec)
     super()
+
     @spec = spec
 
     @checkout_timeout = (spec.config[:checkout_timeout] && spec.config[:checkout_timeout].to_f) || 5
-    if @idle_timeout = spec.config.fetch(:idle_timeout, 300)
+    if @idle_timeout = spec.config.fetch(:idle_timeout, 60)
       @idle_timeout = @idle_timeout.to_f
       @idle_timeout = nil if @idle_timeout <= 0
     end
 
-    # default max pool size to 5
-    @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
-    # This variable tracks the cache of threads mapped to reserved connections, with the
-    # sole purpose of speeding up the +connection+ method. It is not the authoritative
-    # registry of which thread owns which connection. Connection ownership is tracked by
-    # the +connection.owner+ attr on each +connection+ instance.
-    # The invariant works like this: if there is mapping of <tt>thread => conn</tt>,
-    # then that +thread+ does indeed own that +conn+. However, an absence of a such
-    # mapping does not mean that the +thread+ doesn't own the said connection. In
-    # that case +conn.owner+ attr should be consulted.
-    # Access and modification of <tt>@thread_cached_conns</tt> does not require
-    # synchronization.
-    @thread_cached_conns = Concurrent::Map.new(initial_capacity: @size)
-    @connections         = []
-    @automatic_reconnect = true
-    # Connection pool allows for concurrent (outside the main +synchronize+ section)
-    # establishment of new connections. This variable tracks the number of threads
-    # currently in the process of independently establishing connections to the DB.
-    @now_connecting = 0
-    @threads_blocking_new_connections = 0
-    @available = ConnectionLeasingQueue.new self
-
-    @lock_thread = false
-
     # +reaping_frequency+ is configurable mostly for historical reasons, but it could
     # also be useful if someone wants a very low +idle_timeout+.
     reaping_frequency = spec.config.fetch(:reaping_frequency, 60)
-    @reaper = Reaper.new(self, reaping_frequency && reaping_frequency.to_f)
+    @reaper = Reaper.new(self, reaping_frequency)
     @reaper.run
+
+    # default max pool size to 5
+    @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
+
+    # The cache of reserved connections mapped to threads
+    @reserved_connections = ThreadSafe::Cache.new(:initial_capacity => @size)
+
+    @connections         = []
+    @automatic_reconnect = true
+
+    @available = Queue.new self
   end
 
   # Disconnect all connections that have been idle for at least
@@ -109,7 +92,7 @@ class ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper
   def run
     return unless frequency && frequency > 0
     Thread.new(frequency, pool) { |t, p|
-      loop do
+      while true
         sleep t
         p.reap
         p.flush
@@ -119,25 +102,18 @@ class ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper
 end
 
 class ActiveRecord::ConnectionAdapters::AbstractAdapter
-  def initialize(connection, logger = nil, config = {}) # :nodoc:
+  def initialize(connection, logger = nil, pool = nil) #:nodoc:
     super()
+
     @connection          = connection
     @owner               = nil
     @instrumenter        = ActiveSupport::Notifications.instrumenter
     @logger              = logger
-    @config              = config
-    @pool                = nil
+    @pool                = pool
     @idle_since          = Concurrent.monotonic_time
     @schema_cache        = ActiveRecord::ConnectionAdapters::SchemaCache.new self
-    @quoted_column_names, @quoted_table_names = {}, {}
-    @visitor = arel_visitor
-
-    if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-      @prepared_statements = true
-      @visitor.extend(ActiveRecord::ConnectionAdapters::DetermineIfPreparableVisitor)
-    else
-      @prepared_statements = false
-    end
+    @visitor             = nil
+    @prepared_statements = false
   end
 
   def expire

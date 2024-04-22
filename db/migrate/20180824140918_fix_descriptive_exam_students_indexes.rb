@@ -1,4 +1,4 @@
-class FixDescriptiveExamStudentsIndexes < ActiveRecord::Migration[4.2]
+class FixDescriptiveExamStudentsIndexes < ActiveRecord::Migration
   def change
     remove_index :descriptive_exam_students, :descriptive_exam_id
     remove_index :descriptive_exam_students, :student_id

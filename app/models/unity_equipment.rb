@@ -1,4 +1,4 @@
-class UnityEquipment < ApplicationRecord
+class UnityEquipment < ActiveRecord::Base
   acts_as_copy_target
   audited associated_with: :unity, except: :unity_id
 

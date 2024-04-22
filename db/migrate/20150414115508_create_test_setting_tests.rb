@@ -1,4 +1,4 @@
-class CreateTestSettingTests < ActiveRecord::Migration[4.2]
+class CreateTestSettingTests < ActiveRecord::Migration
   def change
     create_table :test_setting_tests do |t|
       t.references :test_setting, index: true, null: false

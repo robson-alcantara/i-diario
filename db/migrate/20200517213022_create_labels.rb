@@ -1,4 +1,4 @@
-class CreateLabels < ActiveRecord::Migration[4.2]
+class CreateLabels < ActiveRecord::Migration
   def change
     create_table :labels do |t|
       t.string :name

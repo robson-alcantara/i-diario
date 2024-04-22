@@ -1,4 +1,4 @@
-class RemoveUnneededIndexRecoveryDiaryRecordsOnUnityId < ActiveRecord::Migration[4.2]
+class RemoveUnneededIndexRecoveryDiaryRecordsOnUnityId < ActiveRecord::Migration
   def change
     remove_index :recovery_diary_records, name: "index_recovery_diary_records_on_unity_id"
   end

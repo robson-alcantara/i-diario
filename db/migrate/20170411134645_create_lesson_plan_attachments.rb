@@ -1,4 +1,4 @@
-class CreateLessonPlanAttachments < ActiveRecord::Migration[4.2]
+class CreateLessonPlanAttachments < ActiveRecord::Migration
   def change
     create_table :lesson_plan_attachments do |t|
       t.references :lesson_plan, index: true, foreign_key: true

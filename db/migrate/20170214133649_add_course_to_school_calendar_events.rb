@@ -1,4 +1,4 @@
-class AddCourseToSchoolCalendarEvents < ActiveRecord::Migration[4.2]
+class AddCourseToSchoolCalendarEvents < ActiveRecord::Migration
   def change
     add_reference :school_calendar_events, :course, index: true, foreign_key: true
   end

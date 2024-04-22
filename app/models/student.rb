@@ -1,4 +1,4 @@
-class Student < ApplicationRecord
+class Student < ActiveRecord::Base
   include Discardable
 
   acts_as_copy_target
@@ -21,7 +21,6 @@ class Student < ApplicationRecord
   has_many :observation_diary_record_note_students
   has_many :recovery_diary_record_students
   has_many :transfer_notes
-  has_many :opn_tb_exams
   has_many :deficiency_students, dependent: :destroy
   has_many :deficiencies, through: :deficiency_students
   has_many :student_unifications
@@ -77,14 +76,14 @@ class Student < ApplicationRecord
   end
 
   def classrooms
-    Classroom.joins(classrooms_grades: :student_enrollment_classrooms).merge(StudentEnrollmentClassroom.by_student(self.id)).distinct
+    Classroom.joins(classrooms_grades: :student_enrollment_classrooms).merge(StudentEnrollmentClassroom.by_student(self.id)).uniq
   end
 
   def current_classrooms
     Classroom.joins(classrooms_grades: :student_enrollment_classrooms).merge(
       StudentEnrollmentClassroom.by_student(id)
                                 .by_date(Date.current)
-    ).distinct
+    ).uniq
   end
 
   private

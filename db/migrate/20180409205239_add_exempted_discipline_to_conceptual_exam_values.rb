@@ -1,4 +1,4 @@
-class AddExemptedDisciplineToConceptualExamValues < ActiveRecord::Migration[4.2]
+class AddExemptedDisciplineToConceptualExamValues < ActiveRecord::Migration
   def change
     add_column :conceptual_exam_values, :exempted_discipline, :boolean, default: false
   end

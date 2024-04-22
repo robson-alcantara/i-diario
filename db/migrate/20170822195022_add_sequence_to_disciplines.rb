@@ -1,4 +1,4 @@
-class AddSequenceToDisciplines < ActiveRecord::Migration[4.2]
+class AddSequenceToDisciplines < ActiveRecord::Migration
   def change
     add_column :disciplines, :sequence, :integer
   end

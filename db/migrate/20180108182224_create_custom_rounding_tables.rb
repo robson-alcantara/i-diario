@@ -1,4 +1,4 @@
-class CreateCustomRoundingTables < ActiveRecord::Migration[4.2]
+class CreateCustomRoundingTables < ActiveRecord::Migration
   def change
     create_table :custom_rounding_tables do |t|
       t.integer :year

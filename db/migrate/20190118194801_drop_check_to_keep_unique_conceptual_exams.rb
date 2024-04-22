@@ -1,4 +1,4 @@
-class DropCheckToKeepUniqueConceptualExams < ActiveRecord::Migration[4.2]
+class DropCheckToKeepUniqueConceptualExams < ActiveRecord::Migration
   def change
     execute <<-SQL
       ALTER TABLE conceptual_exams

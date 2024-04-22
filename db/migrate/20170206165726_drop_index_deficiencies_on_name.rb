@@ -1,4 +1,4 @@
-class DropIndexDeficienciesOnName < ActiveRecord::Migration[4.2]
+class DropIndexDeficienciesOnName < ActiveRecord::Migration
   def change
     remove_index :deficiencies, "name"
   end

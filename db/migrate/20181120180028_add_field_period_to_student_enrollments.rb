@@ -1,4 +1,4 @@
-class AddFieldPeriodToStudentEnrollments < ActiveRecord::Migration[4.2]
+class AddFieldPeriodToStudentEnrollments < ActiveRecord::Migration
   def change
     add_column :student_enrollments, :period, :integer
   end

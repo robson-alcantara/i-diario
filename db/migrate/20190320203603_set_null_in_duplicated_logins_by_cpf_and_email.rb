@@ -1,4 +1,4 @@
-class SetNullInDuplicatedLoginsByCpfAndEmail < ActiveRecord::Migration[4.2]
+class SetNullInDuplicatedLoginsByCpfAndEmail < ActiveRecord::Migration
   def change
     users = User.where("COALESCE(login, '') <> ''").order("status = 'actived'")
 

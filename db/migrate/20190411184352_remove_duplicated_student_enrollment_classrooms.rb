@@ -1,4 +1,4 @@
-class RemoveDuplicatedStudentEnrollmentClassrooms < ActiveRecord::Migration[4.2]
+class RemoveDuplicatedStudentEnrollmentClassrooms < ActiveRecord::Migration
   def change
     ids = StudentEnrollmentClassroom.select('MAX(id) as id')
                                     .group(
