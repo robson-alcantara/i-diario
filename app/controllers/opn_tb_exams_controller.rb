@@ -108,7 +108,7 @@ class OpnTbExamsController < ApplicationController
       fetch_collections
       @opn_tb_exam = OpnTbExam.new
       #@opn_tb_exam.opn_tb_exam_values.build
-      @opn_tb = OpnTb.find( OpnTbGrade.find_by( grade_id: Classroom.find( current_user_classroom ).grade_id, year: current_user_school_year, avaliation: @avaliation, final: @final  ).opn_tb_id )        
+      @opn_tb = OpnTb.find( OpnTbGrade.find_by( grade_id: ClassroomsGrade.find_by( classroom_id: current_user_classroom ).grade_id, year: current_user_school_year, avaliation: @avaliation, final: @final  ).opn_tb_id )        
       @opn_tb_items = OpnTbItem.where( opn_tb_id: @opn_tb.id  ).order( :order )
   
       @opn_tb_items_hash = {}
@@ -176,7 +176,7 @@ step = steps_fetcher.step_by_id(params[:step_id])
 
   #@student_enrollments_ids = StudentEnrollmentClassroom.where( classroom_id: current_user_classroom )
   #@student_enrollments = StudentEnrollment.where( id: @student_enrollments_ids )
-  @student_enrollments = StudentEnrollment.joins(:student_enrollment_classrooms).where(student_enrollment_classrooms: { classroom_id: current_user_classroom }).where(student_enrollments: { active: true } )
+  @student_enrollments = StudentEnrollment.joins(:student_enrollment_classrooms).where(student_enrollment_classrooms: { classroom_code: Classroom.find(current_user_classroom).api_code }).where(student_enrollments: { active: true } )
   #@student_enrollments = StudentEnrollment.joins(:student_enrollment_classrooms).where(student_enrollment_classrooms: { classroom_id: current_user_classroom }).where.not(student_enrollments: { status: 3 } )
 
     # @student_enrollments.find { |enrollment| enrollment[:student_id] = @opn_tb_exam.student_id }.blank?

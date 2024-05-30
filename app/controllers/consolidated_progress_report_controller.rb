@@ -7,7 +7,7 @@ class ConsolidatedProgressReportController < ApplicationController
       school_calendar_year: current_user_school_year
     )
     @consolidated_progress_report_form.classroom_id = current_user.current_classroom_id
-    @course = Course.where( id: Grade.where( id: Classroom.where( id: @consolidated_progress_report_form.classroom_id ).first.grade_id ).first.course_id ).first
+    @course = Course.where( id: Grade.where( id: ClassroomsGrade.find_by( classroom_id: @consolidated_progress_report_form.classroom_id ).grade_id ).first.course_id ).first
     fetch_collections
   end
 

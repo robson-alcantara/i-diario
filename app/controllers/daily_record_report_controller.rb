@@ -137,7 +137,7 @@ class DailyRecordReportController < ApplicationController
 #    ).ordered
 
     @students_by_daily_note = []
-    @student_enrollments = StudentEnrollment.joins(:student_enrollment_classrooms).where(student_enrollment_classrooms: { classroom_id: current_user_classroom })
+    @student_enrollments = StudentEnrollment.joins(:student_enrollment_classrooms).where(student_enrollment_classrooms: { classroom_code: Classroom.find(current_user_classroom).api_code })
     @student_ids = @student_enrollments.collect(&:student_id)
     @students_by_daily_note = Student.where(id: @student_ids)
 

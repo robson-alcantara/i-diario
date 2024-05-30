@@ -9,7 +9,7 @@ class ProgressReportController < ApplicationController
 
     if( current_user.current_classroom_id != nil ) 
       @progress_report_form.classroom_id = current_user.current_classroom_id
-      @course = Course.where( id: Grade.where( id: Classroom.where( id: @progress_report_form.classroom_id ).first.grade_id ).first.course_id ).first
+      @course = Course.where( id: Grade.where( id: ClassroomsGrade.find_by( classroom_id: @progress_report_form.classroom_id ).grade_id ).first.course_id ).first
     else
       @progress_report_form.classroom_id = -1
       @course = Course.new       

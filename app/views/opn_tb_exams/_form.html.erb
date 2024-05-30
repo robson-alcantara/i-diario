@@ -58,8 +58,8 @@
 
       <% i = 0 %>      
       <%# <%= f.fields_for :opn_tb_exam_values, [OpnTbExamValue.new]*@opn_tb_items.length do |opn_tb_exam_value| %>             
-      <% @reversedValue = @opn_tb_exam.opn_tb_exam_values.reverse %>
-      <%= f.fields_for :opn_tb_exam_values, @reversedValue do |opn_tb_exam_value| %>
+      <% @values = @opn_tb_exam.opn_tb_exam_values.sort_by{|e| e[:opn_tb_item_id]} %>
+      <%= f.fields_for :opn_tb_exam_values, @values do |opn_tb_exam_value| %>
 
       <fieldset>
         <div class="row">

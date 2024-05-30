@@ -3,7 +3,7 @@
 <% end %>
 
 <div class="widget-body no-padding">
-  <%= simple_form_for @daily_record_report_form, url: daily_record_report_path, method: :post, html: { class: 'smart-form', target: '_blank', id: "daily-record-report-form" } do |f| %>
+  <%= simple_form_for @daily_record_report_form, url: daily_record_report_path, method: :post, html: { class: 'smart-form', target: '_blank' } do |f| %>
     <div class="alert alert-danger hidden" id="exam-rule-not-found-alert">
       <i class="fa fa-exclamation-circle fa-fw"></i>
       <%= t('.exam_rule_not_found') %>
@@ -55,7 +55,7 @@
         <%= f.input :school_calendar_year, as: :hidden %>
 
         <div class="col col-sm-4">
-          <% current_school_calendar = SchoolCalendar.find_by(unity: current_user_unity, year: current_user_school_year)%>
+          <% current_school_calendar = SchoolCalendar.find_by(unity: current_unity, year: current_user.current_school_year)%>
           <% puts "calendario #{SchoolCalendarStep.where( school_calendar_id: current_school_calendar.id ).where( step_number: 1).first.start_date_for_posting}" %>
           <%= f.input :start_at, as: :date, readonly: true, input_html: {value: SchoolCalendarStep.where( school_calendar_id: current_school_calendar.id ).where( step_number: 1).first.start_at.strftime("%d/%m/%Y")} %>          
         </div>

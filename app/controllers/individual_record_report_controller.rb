@@ -148,7 +148,7 @@ class IndividualRecordReportController < ApplicationController
     @students_by_daily_note = []
 
     @student_enrollments = StudentEnrollment.joins(:student_enrollment_classrooms)
-    .where(student_enrollment_classrooms: { classroom_id: current_user_classroom })
+    .where(student_enrollment_classrooms: { classroom_code: Classroom.find(current_user_classroom).api_code })
     .where("(select count(*) from student_enrollment_dependences where student_enrollment_id = student_enrollments.id) = 0") # elimina os alunos com dependência
 
     @student_ids = @student_enrollments.collect(&:student_id)
